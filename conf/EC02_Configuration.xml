@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<configuration>
+	<!-- time by secs-->
+	<reload-conf-interval value="1" />
+	
+	<service-resources>
+		<service name="app">GSSO.EC02.GSSO.0</service>
+	</service-resources>
+</configuration>

@@ -1,0 +1,4 @@
+﻿GSSO_V1_20161223_1635
+Changelog :
+1. เพิ่มการ verify root ของ USMP RESPONSE ให้ละเอียดขึ้น
+;

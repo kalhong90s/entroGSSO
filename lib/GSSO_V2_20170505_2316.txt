@@ -1,0 +1,4 @@
+﻿GSSO_V2_20170505_2316
+Changelog :
+1. เพิ่ม LOGIC ในการซ่อนค่า TEXT ของ DR LOG เพื่อป้องกัน unexpected variable
+;

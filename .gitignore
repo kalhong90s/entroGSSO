@@ -1,0 +1,14 @@
+bin/
+log/
+example.msg/
+example.msg/*
+/example.msg/
+custom.log/
+classes/
+.settings/
+eqxmsg/
+/out/
+out/
+.idea/
+*.iml
+

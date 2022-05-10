@@ -1,0 +1,124 @@
+package com.ais.eqx.gsso.enums;
+
+import java.util.HashMap;
+
+public enum JsonResultCode {
+
+	SUCCESS("2000", "SUCCESS"),
+
+	WRONG_MSISDN_FORMAT("2001", "WRONG_MSISDN_FORMAT"),
+
+	WRONG_EMAIL_ADDR_FORMAT("2002", "WRONG_EMAIL_ADDR_FORMAT"),
+
+	SERVICE_VAL_EMPTY("2003", "SERVICE_VAL_EMPTY"),
+
+	UNKNOWN_ACCOUNT_TYPE("2004", "UNKNOWN_ACCOUNT_TYPE"),
+
+	UNKNOWN_OTP_CHANNEL("2005", "UNKNOWN_OTP_CHANNEL"),
+
+	WRONG_INPUT_PARAMETER("2006", "WRONG_INPUT_PARAMETER"),
+
+	WRONG_ONETIME_PASSWORD_FORMAT("2007", "WRONG_ONETIME_PASSWORD_FORMAT"),
+
+	WRONG_TRANSACTION_ID_FORMAT("2008", "WRONG_TRANSACTION_ID_FORMAT"),
+
+	UNKNOWN_MSISDN("2009", "UNKNOWN_MSISDN"),
+
+	STATE_NOT_USE_SERVICE("2010", "STATE_NOT_USE_SERVICE"),
+
+	ACCOUNT_TYPE_NOT_MATCH_TYPE("2011", "ACCOUNT_TYPE_NOT_MATCH_TYPE"),
+
+	SERVICE_NOT_ALLOW("2012", "SERVICE_NOT_ALLOW"),
+
+	UNKNOWN_SERVICE("2013", "UNKNOWN_SERVICE"),
+
+	AUTHEN_FAIL("2014", "AUTHEN_FAIL"),
+
+	NOT_AUTHEN_BEFORE("2015", "NOT_AUTHEN_BEFORE"),
+
+	ONETIME_PASSWORD_EXPIRE("2016", "ONETIME_PASSWORD_EXPIRE"),
+
+	HACK_TIME_MORETHAN_3("2017", "HACK_TIME_MORETHAN_3"),
+
+	SEND_SMS_FAIL("2018", "SEND_SMS_FAIL"),
+
+	SEND_SMS_TIMEOUT("2019", "SEND_SMS_TIMEOUT"),
+
+	SEND_EMAIL_FAIL("2020", "SEND_EMAIL_FAIL"),
+
+	SEND_EMAIL_TIMEOUT("2021", "SEND_EMAIL_TIMEOUT"),
+
+	SEND_SMS_FAIL_EMAIL_SUCCESS("2022", "SEND_SMS_FAIL_EMAIL_SUCCESS"),
+
+	SEND_SMS_TIMEOUT_EMAIL_SUCCESS("2023", "SEND_SMS_TIMEOUT_EMAIL_SUCCESS"),
+
+	SEND_SMS_SUCCESS_EMAIL_FAIL("2024", "SEND_SMS_SUCCESS_EMAIL_FAIL"),
+
+	SEND_SMS_SUCCESS_EMAIL_TIMEOUT("2025", "SEND_SMS_SUCCESS_EMAIL_TIMEOUT"),
+
+	SEND_SMS_FAIL_EMAIL_FAIL("2026", "SEND_SMS_FAIL_EMAIL_FAIL"),
+
+	SEND_SMS_TIMEOUT_EMAIL_FAIL("2027", "SEND_SMS_TIMEOUT_EMAIL_FAIL"),
+
+	SEND_SMS_FAIL_EMAIL_TIMEOUT("2028", "SEND_SMS_FAIL_EMAIL_TIMEOUT"),
+
+	SEND_SMS_TIMEOUT_EMAIL_TIMEOUT("2029", "SEND_SMS_TIMEOUT_EMAIL_TIMEOUT"),
+
+	USMP_TIMEOUT("2030", "USMP_TIMEOUT"),
+
+	USMP_ERROR("2031", "USMP_ERROR"),
+
+	E01_TIMEOUT("2032", "E01_TIMEOUT"),
+
+	E01_ERROR("2033", "E01_ERROR"),
+
+	MAXIMUM_AUTHEN_TRANSACTION("2034", "MAXIMUM_AUTHEN_TRANSACTION"),
+	
+	/** just for point to ws soap result code **/
+	MISSING_VALUE_OTPMOBILE_AND_EMAIL("029","MISSING_VALUE_OTPMOBILE_AND_EMAIL"),
+	
+	WRONG_DUMMY_ACCOUNT_TYPE("036","MISSING_VALUE_OTPMOBILE_AND_EMAIL"),
+	
+	ADD_TIMEOUT_MINS_EXCEED("028","ADD_TIMEOUT_MINS_EXCEED"),
+	
+	WS_WRONG_INPUT_PARAMETER("043", "WRONG_INPUT_PARAMETER"),
+	WS_STATE_NOT_USE_SERVICE("021", "STATE_NOT_USE_SERVICE"),
+
+	;
+
+	private String	code;
+	private String	description;
+
+	private JsonResultCode(final String code, final String description) {
+		this.code = code;
+		this.description = description;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(final String code) {
+		this.code = code;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(final String description) {
+		this.description = description;
+	}
+
+	private static final HashMap<String, JsonResultCode>	lookup	= new HashMap<String, JsonResultCode>();
+	static {
+		for (final JsonResultCode e : JsonResultCode.values()) {
+			lookup.put(e.getCode(), e);
+		}
+	}
+
+	public static JsonResultCode getJsonResultCodeFrom(final String code) {
+		return lookup.get(code);
+	}
+
+}

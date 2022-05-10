@@ -1,0 +1,4 @@
+﻿GSSO_V2_20170507_1503
+Changelog :
+1. กลับด้าน condition ในการทำ inquiry sub รอบสอง
+;

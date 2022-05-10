@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="tis-620" ?>
+<configuration>
+    <cold>
+        <HomeDirectory value="/opt/equinoxAS" />
+        <Application group="GSSO" service="GSSO" instance="0" />
+        <Listener port="8888" backlog="256" />
+        <Library directory="./lib/" name="GSSO_V1.jar" function="com.ais.eqx.gsso.controller.APPController" />
+        <ECProperties>
+            <ThreadPool value="5" />
+            <AutoCpuUtilize value="true" />
+            <CpuUtilizeList value="4,5,6,7,8,9,10,11,12,13,14,15,16" />
+            <JavaOption value="-server" />
+            <JavaOption value="-XX:CompileThreshold=1000" />
+            <JavaOption value="-XX:ThreadStackSize=65535" />
+            <JavaOption value="-XX:MainThreadStackSize=65535" />
+            <JavaOption value="-Xms1G" />
+            <JavaOption value="-Xmx1G" />
+            <JavaOption value="-Djavax.xml.xpath.XPathFactory:http://java.sun.com/jaxp/xpath/dom=com.sun.org.apache.xpath.internal.jaxp.XPathFactoryImpl" />
+            <JavaOption value="-Djava.version=1.6" />
+            <JavaLibrary value="ec02_library.jar" />
+            <JavaLibrary value="gson-2.2.2.jar" />
+        </ECProperties>
+    </cold>
+    <!-- Warm Configuration -->
+    <warm>
+        <StatInterval value="2" />
+        <HousekeeperInterval value="10" />
+        <RestartDelay value="10" />
+        <IncomingMsgDecode value="true" />
+        <OutgoingMsgEncode value="true" />
+        <IncomingMsgTrim value="false" />
+        <OutgoingMsgTrim value="true" />
+        <ServerMaxSession value="10" />
+        <ServerReadTimeout value="30" />
+        <ServerWriteTimeout value="30" />
+        <ServerIdleTimeout value="30" />
+        <timeout value="60" />
+        <SFLOG value="FATAL|ERROR|WARN|INFO|DEBUG" />
+        <AFLOG value="FATAL|WARN|INFO|DEBUG" />
+        <!-- end server config -->
+        <AFLOG name="testCustomLog">
+            <LogLevel value="FATAL|ERROR|WARN|INFO|DEBUG" />
+            <Filename value="PreReleasedTest.log" />
+            <TargetDirectory value="./custom.log" />
+            <LogPattern value="%p|%d{HH:mm:ss}|%t|%c{2}|%x%m%n" />
+            <Encoding value="UTF-8" />
+            <DatePattern value="'_'yyyy-MM-dd" />
+            <Custom>
+                <property name="log4jProperty1" value="propValue" />
+                <property name="log4jProperty2" value="propValue" />
+            </Custom>
+        </AFLOG>
+        <!-- Logs Interface -->
+        <GSSO_Details value="Detail" />
+        <!-- optional : Defaule = GSSO_Details -->
+        <GSSO_Summary value="Summary" />
+        <!-- optional : Defaule = GSSO_Summary -->
+        <GSSO_DeliveryReport value="DeliveryReport" />
+        <!-- optional : Defaule = GSSO_DeliveryReport -->
+        <DETAIL_LOG-Enabled value="2" />
+        <!-- optional : Defaule = 0 -->
+        <DETAIL_LOG-RawData-Enabled value="True" />
+        <!-- optional : Defaule = false -->
+        <DETAIL_LOG-Data-Enabled value="True" />
+        <!-- optional : Defaule = false -->
+        <!-- APP NODE NAME -->
+        <Application-Node-Name value="01" /><!-- mandatory -->
+        <!-- Email Host Name -->
+        <Email-URI-Name value="mail.ais.co.th" /><!-- mandatory -->
+        <!-- Severs Interface -->
+        <IDLE-Service value="GSSO.ES05.SERVER.1" /><!-- mandatory -->
+        <IDLE-Service value="GSSO.ES05.SOAP" /><!-- mandatory -->
+        <!-- Clients Interface -->
+        <USMP-InquirySub-Interface value="GSSO.ES04.USMP" /><!-- mandatory -->
+        <USMP-PortCheck-Interface value="GSSO.ES04.USMP" /><!-- mandatory -->
+        <SMPPGW-Interface value="GSSO.ES10.SMPPGW" /><!-- mandatory -->
+        <SMPPGW-Roaming-Interface value="GSSO.ES10.SMPPGWROAMING" /><!-- mandatory -->
+        <MAIL-Server-Interface value="GSSO.ES04.EMAILSV" /><!-- mandatory -->
+        <!-- Max Transaction -->
+        <Max-Transaction value="10" /><!-- mandatory -->
+        <!-- Timeout -->
+        <USMP-Timeout value="4" /><!-- mandatory -->
+        <SMPPGW-Timeout value="2" /><!-- mandatory -->
+        <MAIL-Server-Timeout value="15" /><!-- mandatory -->
+        <E01-Timeout value="2" /><!-- mandatory -->
+        <DR-Timeout value="30" /><!-- mandatory -->
+        <!-- Defalut Password Life Timeout For Compare to E01 and Request Message -->
+        <Password-Life-Timeout-Mins value="30" />
+        <!-- mandatory default = 5 -->
+        <!-- For Plus Normal Transaction Timeout And Put To E11 -->
+        <Plus-Transaction-Timeout-Mins value="50" />
+        <!-- mandatory default = 5 -->
+        <!-- Default Value Of Otp Digit Set Value As value="min,max" example.: value="4,10" -->
+        <OTP-Digit-Min-And-Max value="4,10" /><!-- mandatory -->
+        <!-- Default Value Of REF Digit Set Value As value="min,max" example.: value="4,10" -->
+        <REF-Digit-Min-And-Max value="4,12" /><!-- mandatory -->
+        <!-- Default Value Of Seedkey Will Use When Not Found In E01 Or Request Message -->
+        <Seedkey-Def value = "2jd221ii2223ii11ussawweo" /><!-- mandatory -->
+        <!-- Default Value Of Wait DR Will Use When Not Found In E01 Or Request Message -->
+        <Wait-DR-Def value = "true" />
+        <!-- optional : Defaule = false -->
+        <!-- Custom Active State When Inquiry Subscriber Response and Code = VSMP_00000000 GSSO Will Compare If State Of Subscriber Equal GSSO Will Process Normal Flow -->
+        <Active-State value="1,13,15" /><!-- mandatory -->
+        <!-- MSISDN -->
+        <DomesticCountryCodeList value="66" />
+        <!-- mandatory CountryCodeList-->
+        <!-- MSISDN Length Without Prefix Number -->
+        <MSISDN_Digit_Length value="9" /><!-- mandatory -->
+        <!-- Sms RETRY_REJECT_LIMIT -->
+        <Sms-Retries value="0" /><!-- mandatory -->
+        <!-- Email RETRY_REJECT_LIMIT -->
+        <Email-Retries value="2" /><!-- mandatory -->
+        <!-- PostpaidCosLists -->
+        <PostpaidCosLists value="600001,31,41,51,52" /><!-- mandatory -->
+        <!-- DummyNumberList Character must be toUpperCase-->
+        <DummyNumberLists value="DUMMY1,DUMMY2,GSSOLotto" /><!-- mandatory -->
+        <!-- Mobile-Format For Compare With Param "smsSender" In Service Template -->
+        <Mobile-Format value="66|11" /><!-- mandatory -->
+        <!-- SubmitSM Custom Value IF Not Found In EC02 Conf GSSO Will Set Value="NULL" -->
+        <SMPP-ServiceType value="BD514" /><!-- mandatory -->
+        <SMPP-MessagingMode  value="DefaultSMSC" /><!-- mandatory -->
+        <SMPP-MessageType value="Default" /><!-- mandatory -->
+        <SMPP-GSMNetworkSpecificFeatures value="NoSpecific" /><!-- mandatory -->
+        <SMPP-ProtocolId value="0" /><!-- mandatory -->
+        <SMPP-PriorityFlag value="Bulk" /><!-- mandatory -->
+        <SMPP-ScheduleDeliveryTime value="" /><!-- mandatory -->
+        <!-- <SMPP-ValidityPeriod value="160813000000028+" />  mandatory -->
+        <SMPP-SMEOriginatedAck value="No" /><!-- mandatory -->
+        <SMPP-IntermediateNotification value="No" /><!-- mandatory -->
+        <SMPP-ReplaceIfPresentFlag value="0" /><!-- mandatory -->
+        <SMPP-SmDefaultMsgId value="0" /><!-- mandatory -->
+        <!-- Custom E01 ObjectType For Search E01 -->
+        <E01-ObjectType value="ServiceTemplate" /><!-- mandatory -->
+        <E01-WSDL value="WSDLTemplate" /><!-- mandatory -->
+        <!-- Logs Interface -->
+        <DEBUG_LOG_Enabled value="true" />
+        <!-- optional : Defaule = false -->
+        <!-- USMP Custom Value -->
+        <USMP-UserName value="GSSO" />
+        <USMP-OrderDesc value="GSSO" />
+        <!-- USMP OVERRIDE -->
+        <InquiryVASSubscriber-Uri-Override value="/vsmpalias/Web/Services/SubscriberWebService.asmx"/>
+        <InquiryVASSubscriber-Header-Override value="http://vsmp.ais.co.th/webservices/subscriber/InquiryVASSubscriber" />
+        <InquiryVASSubscriber-Header-Override-Name value="SOAPAction" />
+        <!-- PortCheck-Uri-Override value="/vsmpalias/Web/Services/SubscriberWebService.asmx"/ -->
+        <PortCheck-Uri-Override value="/VSMPMNP/Web/Services/numberportwebservice.asmx"/>
+        <!-- PortCheck-Header-Override value="http://vsmp.ais.co.th/webservices/check/PortCheck" / -->
+        <PortCheck-Header-Override value="http://Ais.co.th/Web/Services/Portcheck" />
+        <!-- PortCheck-Header-Override-Name value="SOAPAcwarmConfigtion" / -->
+        <PortCheck-Header-Override-Name value="SOAPAction" />
+        <!-- WSDL IP Port / -->
+        <WSDL-IP-Address value="192.168.88.105"/>
+        <WSDL-Port value="15000"/>
+        <!-- V2.0 -->
+        <InquiryVasSubscriber value="true" />
+        <!-- optional : Defaule = false --><!-- mandatory -->
+        <InquirySubscriber-Uri-Override value="/vsmpalias/Web/Services/SubscriberWebService.asmx"/><!-- mandatory -->
+        <InquirySubscriber-Header-Override value="http://vsmp.ais.co.th/webservices/subscriber/InquirySubscriber" /><!-- mandatory -->
+        <InquirySubscriber-Header-Override-Name value="SOAPAction" /><!-- mandatory -->
+        <Mode value="Test" />
+        <!--mode value is Test or Production --><!-- mandatory -->
+        <Refund-Retry value="2"/> <!-- mandatory -->
+        <InquirySubscriber-Body-Sub value="InquirySubscriber"/><!-- mandatory -->
+        <InquiryVASSubscriber-Body-Sub value="InquiryVASSubscriber"/> <!-- mandatory -->
+        <E01-ServiceKey-limit-digit value="5"/><!-- mandatory -->
+        <rPCEF-Interface value="GSSO.ES04.rPCEF" /><!-- mandatory -->
+        <Refund-Timeout value="2" /><!-- mandatory -->
+        <Commands-To-Refund value="sendOneTimePW" />
+        <rPCEF-Refund-URL value="/rpcef/v1/refund-management" />
+        <Maximum-Hack-Time value="3" />
+        <!-- Easy app connect Gsso 3/3/2022 -->
+        <USMP-By-Pass-Config-Service-List value="myChannel,myAIS,robot,GOMO,serviceByPass,GSSO" />
+    </warm>
+</configuration>

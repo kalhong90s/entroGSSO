@@ -1,0 +1,5 @@
+﻿GSSO_V2_20170506_2241
+Changelog :
+1. แก้ debug ผิดจากการส่ง inquiry sub ซ้ำรอบที่สอง
+2. แก้ชื่อ command ของ inquiry sub จากเดิม InquirySubscriber เป็น InquiryVASSubscriber
+;
