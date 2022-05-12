@@ -359,7 +359,7 @@ public class InstanceValidator {
 		// require state and smsLanguage
 		if(Arrays.asList(GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.USMP_BY_PASS_CONFIG_SERVICE_LIST).toUpperCase())).contains(sendOneTimePW.getService().toUpperCase())){
 			mandatoryPath = "state";
-			if(null == sendOneTimePW.getState() || sendOneTimePW.getState().isEmpty() ){
+			if(null == sendOneTimePW.getState() || sendOneTimePW.getState().isEmpty() || "".equals(sendOneTimePW.getState().trim()) ){
 
 			}else if(!Arrays.asList(GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.ACTIVE_STATE))).contains(sendOneTimePW.getState())) {
 				throw new ValidationException(mandatoryPath, otpRequest.getMessageType().equals(GssoMessageType.SOAP)?JsonResultCode.WS_STATE_NOT_USE_SERVICE :JsonResultCode.STATE_NOT_USE_SERVICE , "not use service");
