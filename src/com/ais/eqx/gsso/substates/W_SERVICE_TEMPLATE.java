@@ -173,7 +173,7 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 
 			/** VALID MESSAGE **/
 			if (messageValidator(abstractAF, equinoxRawData, e01Data)) {
-				writeLogSuccess(abstractAF, equinoxRawData, e01Data);
+ 				writeLogSuccess(abstractAF, equinoxRawData, e01Data);
 
 				/** EXTRACT SERVICE TEMPLATE **/
 				extractE01ToObject(abstractAF);

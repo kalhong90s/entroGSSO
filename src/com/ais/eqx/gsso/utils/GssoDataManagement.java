@@ -412,6 +412,28 @@ public class GssoDataManagement {
 
 		return outputString;
 	}
+	public static String convertStringToHexNotPrefix(final String text, boolean isThai) {
+		String outputString = "";
+
+		try {
+			/** OLD CONVERT HEX **/
+			// outputString = Hex.encodeHexString(text.getBytes());
+			/** OLE CONVERT HEX **/
+
+			/** NEW CONVERT HEX **/
+			ArrayList<String> listEncodeText = GssoTranformGMSMessage.tranformMessageSending(text, isThai);
+			for (String lineText : listEncodeText) {
+				outputString += lineText;
+			}
+
+
+		}
+		catch (Exception e) {
+			Log.d("Wrong HEX Format");
+		}
+
+		return outputString;
+	}
 	
 	public static String convertHexToString(String hex) {
 		String outputString = "";

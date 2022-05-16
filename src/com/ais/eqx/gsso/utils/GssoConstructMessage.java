@@ -1,15 +1,14 @@
 package com.ais.eqx.gsso.utils;
 
+import java.nio.charset.Charset;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.ais.eqx.gsso.enums.ConfigName;
@@ -714,6 +713,11 @@ public class GssoConstructMessage {
 
 			/* SAVE SMSCDeliveryReceipt */
 			origInvokeProfile.setRealSMSCDeliveryReceipt(serviceTemplate.getSmscDeliveryReceipt());
+			ArrayList<String> listOfSms = splitSmsBody(smsBody,language);
+
+			output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(listOfSms.get(0), msisdn,
+					language, smsSender, serviceTemplate.getSmscDeliveryReceipt(),
+					sendOneTimePW.getWaitDR(), serviceKey, sendOneTimePW.getLifeTimeoutMins()));
 
 			output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(GssoDataManagement.convertStringToHex(smsBody, true), msisdn,
 					language, smsSender, GssoDataManagement.convertStringToHex(smsBody, false), serviceTemplate.getSmscDeliveryReceipt(),
@@ -822,6 +826,355 @@ public class GssoConstructMessage {
 		}
 
 		return output;
+	}
+
+	public static ArrayList <EquinoxRawData> createSMSReqMessage(final String origInvoke, final GssoServiceTemplate serviceTemplate,
+													 EC02Instance ec02Instance, GssoComposeDebugLog composeDebugLog ,String test) {
+		ArrayList <EquinoxRawData> rawDataArrayList = new ArrayList<EquinoxRawData>();
+
+		EquinoxRawData output = new EquinoxRawData();
+		APPInstance appInstance = ec02Instance.getAppInstance();
+		OrigInvokeProfile origInvokeProfile = appInstance.getMapOrigProfile().get(origInvoke);
+
+
+/*
+		String invokeOutgoing = InvokeSubStates.getInvokeOutgoing(origInvoke, SubStates.W_SEND_SMS.toString());
+
+		output = new EquinoxRawData();
+		output.setName(EventName.SMPP);
+		output.setCType(EventCtype.SMS);
+		output.setType(EventAction.REQUEST);
+		output.setInvoke(invokeOutgoing);
+
+		OrigInvokeProfile origInvokeProfile = appInstance.getMapOrigProfile().get(origInvoke);
+		if (serviceTemplate.getAllowSmsRoaming().equalsIgnoreCase(SentOTPResult.FALSE)) {
+			output.setTo(ConfigureTool.getConfigure(ConfigName.SMPPGW_INTERFACE));
+
+			// ===============================================WRITE
+			// DETAILS======================================================
+			appInstance.getMapOrigInvokeEventDetailOutput().put(invokeOutgoing, EventLog.SUBMIT_SM.getEventLog());
+			// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^WRITE
+			// DETAILS^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+			origInvokeProfile.setSMPPRoaming(false);
+		}
+		else {
+			output.setTo(ConfigureTool.getConfigure(ConfigName.SMPPGW_ROAMING_INTERFACE));
+
+			// ===============================================WRITE
+			// DETAILS======================================================
+			appInstance.getMapOrigInvokeEventDetailOutput().put(invokeOutgoing, EventLog.SMPPGW_ROAMING.getEventLog());
+			// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^WRITE
+			// DETAILS^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+			origInvokeProfile.setSMPPRoaming(true);
+		}
+*/
+
+		if(origInvokeProfile.getGssoOrigCommand().equals(GssoCommand.WS_AUTHEN_OTP_ID)){
+
+			String transactionID = origInvokeProfile.getTransactionID();
+			TransactionData transactionData = appInstance.getTransactionidData().get(transactionID);
+
+			SendWSOTPRequest sendWSAuthOTPWithIDRequest = origInvokeProfile.getSendWSOTPRequest();
+			String otpMobile = sendWSAuthOTPWithIDRequest.getOtpMobile();
+
+			SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+			String expireTimeString = sdf.format(transactionData.getOtpExpireTime());
+
+			String language = appInstance.getProfile().getLanguage();
+			String smsBody = null;
+			String serviceKey = null;
+
+
+			serviceKey = appInstance.getMapE01dataofService().get(sendWSAuthOTPWithIDRequest.getService().toUpperCase()).getServiceKey();
+
+			if (GssoLanguage.THAI.equals(language)) {
+				smsBody = serviceTemplate.getSmsBodyThai();
+			}
+			else {
+				smsBody = serviceTemplate.getSmsBodyEng();
+			}
+
+
+			smsBody = smsBody.replaceAll("<#SERVICE>", transactionData.getService());
+			smsBody = smsBody.replaceAll("<#OTP>", transactionData.getOtp());
+			smsBody = smsBody.replaceAll("<#REF>", transactionData.getRefNumber());
+			smsBody = smsBody.replaceAll("<#EXPIRETIME>", expireTimeString);
+			smsBody = smsBody.replaceAll("<#LIFETIMEOUT>", sendWSAuthOTPWithIDRequest.getAddTimeoutMins());
+
+			String smsSender = serviceTemplate.getSmsSender();
+			smsSender = smsSender.replaceAll("<#SERVICE>", transactionData.getService());
+			smsSender = smsSender.replaceAll("<#OTP>", transactionData.getOtp());
+			smsSender = smsSender.replaceAll("<#REF>", transactionData.getRefNumber());
+			smsSender = smsSender.replaceAll("<#EXPIRETIME>", expireTimeString);
+			smsSender = smsSender.replaceAll("<#LIFETIMEOUT>", sendWSAuthOTPWithIDRequest.getAddTimeoutMins());
+
+			/* SAVE SMSCDeliveryReceipt */
+			origInvokeProfile.setRealSMSCDeliveryReceipt(serviceTemplate.getSmscDeliveryReceipt());
+
+			output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(GssoDataManagement.convertStringToHex(smsBody, true), otpMobile,
+					language, smsSender, GssoDataManagement.convertStringToHex(smsBody, false), serviceTemplate.getSmscDeliveryReceipt(),
+					sendWSAuthOTPWithIDRequest.getWaitDR(), serviceKey, sendWSAuthOTPWithIDRequest.getAddTimeoutMins()));
+		}
+		else if(origInvokeProfile.getGssoOrigCommand().equals(GssoCommand.WS_AUTHEN_OTP)){
+
+			String transactionID = origInvokeProfile.getTransactionID();
+			TransactionData transactionData = appInstance.getTransactionidData().get(transactionID);
+
+			SendWSOTPRequest sendWSAuthOTPRequest = origInvokeProfile.getSendWSOTPRequest();
+			String otpMoblie = sendWSAuthOTPRequest.getOtpMobile();
+
+			SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+			String expireTimeString = sdf.format(transactionData.getOtpExpireTime());
+
+			String language = appInstance.getProfile().getLanguage();
+			String smsBody = null;
+			String serviceKey = null;
+
+
+			serviceKey = appInstance.getMapE01dataofService().get(sendWSAuthOTPRequest.getService().toUpperCase()).getServiceKey();
+
+			if (GssoLanguage.THAI.equals(language)) {
+				smsBody = serviceTemplate.getSmsBodyThai();
+			}
+			else {
+				smsBody = serviceTemplate.getSmsBodyEng();
+			}
+
+
+			smsBody = smsBody.replaceAll("<#SERVICE>", transactionData.getService());
+			smsBody = smsBody.replaceAll("<#OTP>", transactionData.getOtp());
+			smsBody = smsBody.replaceAll("<#REF>", transactionData.getRefNumber());
+			smsBody = smsBody.replaceAll("<#EXPIRETIME>", expireTimeString);
+			smsBody = smsBody.replaceAll("<#LIFETIMEOUT>", sendWSAuthOTPRequest.getAddTimeoutMins());
+
+			String smsSender = serviceTemplate.getSmsSender();
+			smsSender = smsSender.replaceAll("<#SERVICE>", transactionData.getService());
+			smsSender = smsSender.replaceAll("<#OTP>", transactionData.getOtp());
+			smsSender = smsSender.replaceAll("<#REF>", transactionData.getRefNumber());
+			smsSender = smsSender.replaceAll("<#EXPIRETIME>", expireTimeString);
+			smsSender = smsSender.replaceAll("<#LIFETIMEOUT>", sendWSAuthOTPRequest.getAddTimeoutMins());
+
+			/* SAVE SMSCDeliveryReceipt */
+			origInvokeProfile.setRealSMSCDeliveryReceipt(serviceTemplate.getSmscDeliveryReceipt());
+
+			output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(GssoDataManagement.convertStringToHex(smsBody, true), otpMoblie,
+					language, smsSender, GssoDataManagement.convertStringToHex(smsBody, false), serviceTemplate.getSmscDeliveryReceipt(),
+					sendWSAuthOTPRequest.getWaitDR(), serviceKey, sendWSAuthOTPRequest.getAddTimeoutMins()));
+
+		}
+		else if(origInvokeProfile.getGssoOTPRequest()!=null){
+			GssoOTPRequest otpRequest = origInvokeProfile.getGssoOTPRequest();
+
+			String transactionID = origInvokeProfile.getTransactionID();
+			TransactionData transactionData = appInstance.getTransactionidData().get(transactionID);
+
+			SendOneTimePWRequest sendOneTimePW = otpRequest.getSendOneTimePW();
+			String msisdn = sendOneTimePW.getMsisdn();
+
+			SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+			String expireTimeString = sdf.format(transactionData.getOtpExpireTime());
+
+			String language = appInstance.getProfile().getLanguage();
+			String smsBody = null;
+			String serviceKey = null;
+
+			if (origInvokeProfile.getIncomingMessageType().equals(IncomingMessageType.AUTHEN_ONETIMEPASSWORD_JSON.getMessageType())) {
+				if (sendOneTimePW.getServiceKey() == null || sendOneTimePW.getServiceKey().isEmpty()) {
+					serviceKey = "GS000";
+				}
+				else {
+					serviceKey = sendOneTimePW.getServiceKey();
+				}
+				smsBody = serviceTemplate.getSmsBody();
+			}
+			else {
+				serviceKey = appInstance.getMapE01dataofService().get(sendOneTimePW.getService().toUpperCase()).getServiceKey();
+
+				if (GssoLanguage.THAI.equals(language)) {
+					smsBody = serviceTemplate.getSmsBodyThai();
+				}
+				else {
+					smsBody = serviceTemplate.getSmsBodyEng();
+				}
+			}
+
+			smsBody = smsBody.replaceAll("<#SERVICE>", transactionData.getService());
+			smsBody = smsBody.replaceAll("<#OTP>", transactionData.getOtp());
+			smsBody = smsBody.replaceAll("<#REF>", transactionData.getRefNumber());
+			smsBody = smsBody.replaceAll("<#EXPIRETIME>", expireTimeString);
+			smsBody = smsBody.replaceAll("<#LIFETIMEOUT>", sendOneTimePW.getLifeTimeoutMins());
+
+			String smsSender = serviceTemplate.getSmsSender();
+			smsSender = smsSender.replaceAll("<#SERVICE>", transactionData.getService());
+			smsSender = smsSender.replaceAll("<#OTP>", transactionData.getOtp());
+			smsSender = smsSender.replaceAll("<#REF>", transactionData.getRefNumber());
+			smsSender = smsSender.replaceAll("<#EXPIRETIME>", expireTimeString);
+			smsSender = smsSender.replaceAll("<#LIFETIMEOUT>", sendOneTimePW.getLifeTimeoutMins());
+
+			/* SAVE SMSCDeliveryReceipt */
+			origInvokeProfile.setRealSMSCDeliveryReceipt(serviceTemplate.getSmscDeliveryReceipt());
+
+
+			ArrayList<String> listOfSms = splitSmsBody(smsBody, language);
+			if (listOfSms.size() > 1) {
+				for (String sms : listOfSms) {
+					setRrawDataAttr(origInvoke,serviceTemplate,appInstance,output);
+					output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(sms, msisdn,
+							language, smsSender, serviceTemplate.getSmscDeliveryReceipt(),
+							sendOneTimePW.getWaitDR(), serviceKey, sendOneTimePW.getLifeTimeoutMins()));
+
+					rawDataArrayList.add(output);
+				}
+			}else{
+				setRrawDataAttr(origInvoke,serviceTemplate,appInstance,output);
+				output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(listOfSms.get(0), msisdn,
+						language, smsSender, serviceTemplate.getSmscDeliveryReceipt(),
+						sendOneTimePW.getWaitDR(), serviceKey, sendOneTimePW.getLifeTimeoutMins()));
+				rawDataArrayList.add(output);
+
+			}
+
+
+			output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(GssoDataManagement.convertStringToHex(smsBody, true), msisdn,
+					language, smsSender, GssoDataManagement.convertStringToHex(smsBody, false), serviceTemplate.getSmscDeliveryReceipt(),
+					sendOneTimePW.getWaitDR(), serviceKey, sendOneTimePW.getLifeTimeoutMins()));
+		}
+		else if(origInvokeProfile.getGssoOrigCommand().equals(GssoCommand.WS_CREAT_OTP)){
+
+			String transactionID = origInvokeProfile.getTransactionID();
+			TransactionData transactionData = appInstance.getTransactionidData().get(transactionID);
+
+			SendWSOTPRequest sendWSCreateOTPRequest = origInvokeProfile.getSendWSOTPRequest();
+			String msisdn = sendWSCreateOTPRequest.getMsisdn();
+
+			SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+			String expireTimeString = sdf.format(transactionData.getOtpExpireTime());
+
+			String language = appInstance.getProfile().getLanguage();
+			String smsBody = null;
+			String serviceKey = null;
+
+
+			serviceKey = appInstance.getMapE01dataofService().get(sendWSCreateOTPRequest.getService().toUpperCase()).getServiceKey();
+
+			if (GssoLanguage.THAI.equals(language)) {
+				smsBody = serviceTemplate.getSmsBodyThai();
+			}
+			else {
+				smsBody = serviceTemplate.getSmsBodyEng();
+			}
+
+
+			smsBody = smsBody.replaceAll("<#SERVICE>", transactionData.getService());
+			smsBody = smsBody.replaceAll("<#OTP>", transactionData.getOtp());
+			smsBody = smsBody.replaceAll("<#REF>", transactionData.getRefNumber());
+			smsBody = smsBody.replaceAll("<#EXPIRETIME>", expireTimeString);
+			smsBody = smsBody.replaceAll("<#LIFETIMEOUT>", sendWSCreateOTPRequest.getAddTimeoutMins());
+
+			String smsSender = serviceTemplate.getSmsSender();
+			smsSender = smsSender.replaceAll("<#SERVICE>", transactionData.getService());
+			smsSender = smsSender.replaceAll("<#OTP>", transactionData.getOtp());
+			smsSender = smsSender.replaceAll("<#REF>", transactionData.getRefNumber());
+			smsSender = smsSender.replaceAll("<#EXPIRETIME>", expireTimeString);
+			smsSender = smsSender.replaceAll("<#LIFETIMEOUT>", sendWSCreateOTPRequest.getAddTimeoutMins());
+
+			/* SAVE SMSCDeliveryReceipt */
+			origInvokeProfile.setRealSMSCDeliveryReceipt(serviceTemplate.getSmscDeliveryReceipt());
+
+			output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(GssoDataManagement.convertStringToHex(smsBody, true), msisdn,
+					language, smsSender, GssoDataManagement.convertStringToHex(smsBody, false), serviceTemplate.getSmscDeliveryReceipt(),
+					sendWSCreateOTPRequest.getWaitDR() , serviceKey, sendWSCreateOTPRequest.getAddTimeoutMins()));
+
+		}
+		else if(origInvokeProfile.getGssoOrigCommand().equals(GssoCommand.WS_GENERATE_OTP)){
+
+			String transactionID = origInvokeProfile.getTransactionID();
+			TransactionData transactionData = appInstance.getTransactionidData().get(transactionID);
+
+			SendWSOTPRequest sendWSGenerateOTPRequest = origInvokeProfile.getSendWSOTPRequest();
+			String msisdn = sendWSGenerateOTPRequest.getMsisdn();
+
+			SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+			String expireTimeString = sdf.format(transactionData.getOtpExpireTime());
+
+			String language = appInstance.getProfile().getLanguage();
+			String smsBody = null;
+			String serviceKey = null;
+
+
+			serviceKey = appInstance.getMapE01dataofService().get(sendWSGenerateOTPRequest.getService().toUpperCase()).getServiceKey();
+
+			if (GssoLanguage.THAI.equals(language)) {
+				smsBody = serviceTemplate.getSmsBodyThai();
+			}
+			else {
+				smsBody = serviceTemplate.getSmsBodyEng();
+			}
+
+
+			smsBody = smsBody.replaceAll("<#SERVICE>", transactionData.getService());
+			smsBody = smsBody.replaceAll("<#OTP>", transactionData.getOtp());
+			smsBody = smsBody.replaceAll("<#REF>", transactionData.getRefNumber());
+			smsBody = smsBody.replaceAll("<#EXPIRETIME>", expireTimeString);
+			smsBody = smsBody.replaceAll("<#LIFETIMEOUT>", sendWSGenerateOTPRequest.getAddTimeoutMins());
+
+			String smsSender = serviceTemplate.getSmsSender();
+			smsSender = smsSender.replaceAll("<#SERVICE>", transactionData.getService());
+			smsSender = smsSender.replaceAll("<#OTP>", transactionData.getOtp());
+			smsSender = smsSender.replaceAll("<#REF>", transactionData.getRefNumber());
+			smsSender = smsSender.replaceAll("<#EXPIRETIME>", expireTimeString);
+			smsSender = smsSender.replaceAll("<#LIFETIMEOUT>", sendWSGenerateOTPRequest.getAddTimeoutMins());
+
+			/* SAVE SMSCDeliveryReceipt */
+			origInvokeProfile.setRealSMSCDeliveryReceipt(serviceTemplate.getSmscDeliveryReceipt());
+
+			output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(GssoDataManagement.convertStringToHex(smsBody, true), msisdn,
+					language, smsSender, GssoDataManagement.convertStringToHex(smsBody, false), serviceTemplate.getSmscDeliveryReceipt(),
+					sendWSGenerateOTPRequest.getWaitDR(), serviceKey, sendWSGenerateOTPRequest.getAddTimeoutMins()));
+
+		}
+		ec02Instance.incrementsStat(Statistic.GSSO_SEND_SMPPGW_SUBMITSM_REQUEST.getStatistic());
+
+		// //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^WRITE
+		// DETAILS^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+		if (ConfigureTool.isWriteLog(ConfigName.DEBUG_LOG_ENABLED)) {
+			composeDebugLog.addStatisticOut(Statistic.GSSO_SEND_SMPPGW_SUBMITSM_REQUEST.getStatistic());
+		}
+
+		return rawDataArrayList;
+	}
+	public static void setRrawDataAttr (final String origInvoke, final GssoServiceTemplate serviceTemplate,
+										APPInstance appInstance, EquinoxRawData output ){
+
+		String invokeOutgoing = InvokeSubStates.getInvokeOutgoing(origInvoke, SubStates.W_SEND_SMS.toString());
+
+		output = new EquinoxRawData();
+		output.setName(EventName.SMPP);
+		output.setCType(EventCtype.SMS);
+		output.setType(EventAction.REQUEST);
+		output.setInvoke(invokeOutgoing);
+		OrigInvokeProfile origInvokeProfile = appInstance.getMapOrigProfile().get(origInvoke);
+		if (serviceTemplate.getAllowSmsRoaming().equalsIgnoreCase(SentOTPResult.FALSE)) {
+			output.setTo(ConfigureTool.getConfigure(ConfigName.SMPPGW_INTERFACE));
+
+			// ===============================================WRITE
+			// DETAILS======================================================
+			appInstance.getMapOrigInvokeEventDetailOutput().put(invokeOutgoing, EventLog.SUBMIT_SM.getEventLog());
+			// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^WRITE
+			// DETAILS^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+			origInvokeProfile.setSMPPRoaming(false);
+		}
+		else {
+			output.setTo(ConfigureTool.getConfigure(ConfigName.SMPPGW_ROAMING_INTERFACE));
+
+			// ===============================================WRITE
+			// DETAILS======================================================
+			appInstance.getMapOrigInvokeEventDetailOutput().put(invokeOutgoing, EventLog.SMPPGW_ROAMING.getEventLog());
+			// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^WRITE
+			// DETAILS^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+			origInvokeProfile.setSMPPRoaming(true);
+		}
+
 	}
 
 	public static EquinoxRawData createEMAILReqMessage(final String origInvoke, final GssoServiceTemplate serviceTemplate,
@@ -1199,12 +1552,193 @@ public class GssoConstructMessage {
 		/* SAVE SMSCDeliveryReceipt */
 		origInvokeProfile.setRealSMSCDeliveryReceipt(serviceTemplate.getSmscDeliveryReceipt());
 
+
+
+		ArrayList<String> listOfSms = splitSmsBody(smsBody,language);
+
+		if(listOfSms.size()>1){
+			for (String sms : listOfSms){
+
+			}
+		}
+
 		output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(GssoDataManagement.convertStringToHex(smsBody, true), msisdn,
 				language, smsSender, GssoDataManagement.convertStringToHex(smsBody, false), serviceTemplate.getSmscDeliveryReceipt(),
 				waitDR, serviceKey, lifeTimeoutMins));
 
 		return output;
 	}
+
+	public static ArrayList<String> splitSmsBody(String smsBody,String language){
+		ArrayList<String> listOfSms = new ArrayList<String>();
+
+		if (language.equals(GssoLanguage.THAI)) {
+			smsBody = GssoDataManagement.convertStringToHexNotPrefix(smsBody, true);
+		}
+		else {
+			smsBody = GssoDataManagement.convertStringToHexNotPrefix(smsBody, false);
+		}
+
+		if(smsBody.length()>400) {
+			// random hexadecimal 6 digit
+			String s = String.format("%x", (int) (Math.random() * 10000000));
+
+			// random String 2 digit
+			String AA = RandomStringUtils.random(2, "ABCDE");
+
+			// cal sms
+			int BB = smsBody.length() / 400 + (smsBody.length() % 400 > 1 ? 1 : 0);
+			int CC = 1;
+
+			String prefix = "0x" + s + AA + "0" + BB ;
+
+			while (smsBody.length() > 400) {
+				String splitBody = smsBody.substring(0, 400);
+				listOfSms.add(prefix  + "0" + CC + "," +splitBody);
+				smsBody = smsBody.substring(400);
+				CC++;
+
+			}
+			listOfSms.add(prefix  + "0" + CC + ","+ smsBody);
+
+
+		}else {
+			listOfSms.add("0x," + smsBody);
+		}
+		return listOfSms;
+
+	}
+	public static String createSMSBodyMessage(final String messageHex, final String msisdn, final String language,
+											  final String smsSender, final String smsCDeliveryReceiptE01, final String realWaitDR,
+											  final String serviceKey, final String lifeTimeoutMins) {
+
+		StringBuilder smsBody = new StringBuilder();
+		boolean isFoundEC02MobileFormat = false;
+
+		String sourceAddrTon = null;
+		String sourceAddrNpi = null;
+		String sourceAddr = null;
+
+		String destAddrTon = null;
+		String destAddrNpi = null;
+
+		String messagingMode = null;
+		String messageType = null;
+		String gsmNetworkSpecificFeatures = null;
+
+		String protocolId = null;
+		String priorityFlag = null;
+		String scheduleDeliveryTime = null;
+		String validityPeriod = null;
+
+		String smsCDeliveryReceipt = null;
+		String smsCDeliveryReceiptToSMPP = null;
+		String waitDR = null;
+		String smeOriginatedAck = null;
+		String intermediateNotification = null;
+
+		String replaceIfPresentFlag = null;
+		String dataCoding = null;
+		String smDefaultMsgId = null;
+
+		/************ MobileFormat **************/
+		sourceAddrTon = chooseSourceAddrTon(smsSender, isFoundEC02MobileFormat);
+
+		sourceAddrNpi = chooseSourceAddrNpi(smsSender, isFoundEC02MobileFormat);
+
+		/************ MobileFormat **************/
+		sourceAddr = smsSender;
+		destAddrTon = SourceAddrTon.INTERNATIONAL;
+		destAddrNpi = SourceAddrNpi.ISDN;
+
+		messagingMode = ConfigureTool.getConfigureSMPP(ConfigName.SMPP_MESSAGING_MODE);
+		messageType = ConfigureTool.getConfigureSMPP(ConfigName.SMPP_MESSAGE_TYPE);
+		gsmNetworkSpecificFeatures = ConfigureTool.getConfigureSMPP(ConfigName.SMPP_GSM_NETWORK_SPECIFIC_FEATURES);
+
+		protocolId = ConfigureTool.getConfigureSMPP(ConfigName.SMPP_PROTOCOL_ID);
+		priorityFlag = ConfigureTool.getConfigureSMPP(ConfigName.SMPP_PRIORITY_FLAG);
+		scheduleDeliveryTime = ConfigureTool.getConfigureSMPP(ConfigName.SMPP_SCHEDULE_DELIVERY_TIME);
+
+		// replace with Choose default value		getLifeTimeoutMins
+//		validityPeriod = ConfigureTool.getConfigureSMPP(ConfigName.SMPP_VALIDITY_PERIOD);
+//		validityPeriod = lifeTimeoutMins;
+		long lifeTime = TimeUnit.MINUTES.toMillis(Integer.parseInt(lifeTimeoutMins));
+		long currentime = System.currentTimeMillis()+lifeTime;
+		String pattern = "yyMMddHHmmss028+";
+		SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+		String date = simpleDateFormat.format(currentime);
+		validityPeriod = date;
+
+		/************ smsCDeliveryReceipt **************/
+		if (smsCDeliveryReceiptE01 == null) {
+			smsCDeliveryReceipt = BooleanString.FALSE;
+		}
+		else {
+			smsCDeliveryReceipt = smsCDeliveryReceiptE01;
+		}
+		if (realWaitDR == null) {
+			waitDR = BooleanString.FALSE;
+		}
+		else {
+			waitDR = realWaitDR;
+		}
+
+		if (smsCDeliveryReceipt.toUpperCase().equals(BooleanString.TRUE) && waitDR.toUpperCase().equals(BooleanString.TRUE)) {
+			smsCDeliveryReceiptToSMPP = "SuccessOrFailure";
+		}
+		else if (smsCDeliveryReceipt.toUpperCase().equals(BooleanString.TRUE) || waitDR.toUpperCase().equals(BooleanString.TRUE)) {
+			smsCDeliveryReceiptToSMPP = "SuccessOrFailure";
+		}
+		else {
+			smsCDeliveryReceiptToSMPP = "No";
+		}
+		/************ smsCDeliveryReceipt **************/
+
+		smeOriginatedAck = ConfigureTool.getConfigureSMPP(ConfigName.SMPP_SME_ORIGINATED_ACK);
+		intermediateNotification = ConfigureTool.getConfigureSMPP(ConfigName.SMPP_INTERMEDIATE_NOTIFICATION);
+		replaceIfPresentFlag = ConfigureTool.getConfigureSMPP(ConfigName.SMPP_REPLACE_IF_PRESENT_FLAG);
+
+		if (language.equals(GssoLanguage.THAI)) {
+			dataCoding = "UCS2";
+		}
+		else {
+			dataCoding = "SMSCDefault";
+		}
+
+		smDefaultMsgId = ConfigureTool.getConfigureSMPP(ConfigName.SMPP_SM_DEFAULT_MSG_ID);
+
+		smsBody.append("<mandatory>");
+		smsBody.append("<service_type value=\"" + serviceKey + "\"/>");
+		smsBody.append("<source_addr_ton value=\"" + sourceAddrTon + "\"/>");
+		smsBody.append("<source_addr_npi value=\"" + sourceAddrNpi + "\"/>");
+		smsBody.append("<source_addr value=\"" + sourceAddr + "\"/>");
+		smsBody.append("<dest_addr_ton value=\"" + destAddrTon + "\"/>");
+		smsBody.append("<dest_addr_npi value=\"" + destAddrNpi + "\"/>");
+		smsBody.append("<destination_addr value=\"" + msisdn + "\"/>");
+		smsBody.append("<esm_class>");
+		smsBody.append("<MessagingMode value=\"" + messagingMode + "\"/>");
+		smsBody.append("<MessageType value=\"" + messageType + "\"/>");
+		smsBody.append("<GSMNetworkSpecificFeatures value=\"" + gsmNetworkSpecificFeatures + "\"/>");
+		smsBody.append("</esm_class>");
+		smsBody.append("<protocol_id value=\"" + protocolId + "\"/>");
+		smsBody.append("<priority_flag value=\"" + priorityFlag + "\"/>");
+		smsBody.append("<schedule_delivery_time value=\"" + scheduleDeliveryTime + "\"/>");
+		smsBody.append("<validity_period value=\"" + validityPeriod + "\"/>");
+		smsBody.append("<registered_delivery>");
+		smsBody.append("<SMSCDeliveryReceipt value=\"" + smsCDeliveryReceiptToSMPP + "\"/>");
+		smsBody.append("<SMEOriginatedAck value=\"" + smeOriginatedAck + "\"/>");
+		smsBody.append("<IntermediateNotification value=\"" + intermediateNotification + "\"/>");
+		smsBody.append("</registered_delivery>");
+		smsBody.append("<replace_if_present_flag value=\"" + replaceIfPresentFlag + "\"/>");
+		smsBody.append("<data_coding value=\"" + dataCoding + "\"/>");
+		smsBody.append("<sm_default_msg_id value=\"" + smDefaultMsgId + "\"/>");
+		smsBody.append("<sm_length value=\"" + messageHex.split(",")[messageHex.split(",").length>1?1:0].length()/2 + "\"/>");
+		smsBody.append("<short_message value=\"" + messageHex.replace(",","") + "\"/>");
+		smsBody.append("</mandatory>");
+
+		return smsBody.toString();
+	}
+
 
 	public static String createSMSBodyMessage(final String messageHex, final String msisdn, final String language,
 			final String smsSender, final String messageOct, final String smsCDeliveryReceiptE01, final String realWaitDR,
