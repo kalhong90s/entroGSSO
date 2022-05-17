@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 import com.ais.eqx.gsso.enums.SoapResultCode;
 import com.ais.eqx.gsso.interfaces.*;
+import ec02.af.utils.Log;
 import org.apache.commons.lang3.StringUtils;
 
 import com.ais.eqx.gsso.enums.ConfigName;
@@ -358,10 +359,15 @@ public class InstanceValidator {
 		// serviceIsBypass
 		// require state and smsLanguage
 		if(Arrays.asList(GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.USMP_BY_PASS_CONFIG_SERVICE_LIST).toUpperCase())).contains(sendOneTimePW.getService().toUpperCase())){
+			Log.d("############ Case : Bypass USMP ############ ");
+
 			mandatoryPath = "state";
+			Log.d("EC02 <Active-State ="+ConfigureTool.getConfigure(ConfigName.ACTIVE_STATE)+" : sendOneTimePW.state="+sendOneTimePW.getState());
+
 			if(null == sendOneTimePW.getState() || sendOneTimePW.getState().isEmpty() || "".equals(sendOneTimePW.getState().trim()) ){
 
-			}else if(!Arrays.asList(GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.ACTIVE_STATE))).contains(sendOneTimePW.getState())) {
+			}else if(!Arrays.asList(GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.ACTIVE_STATE))).contains(sendOneTimePW.getState()))
+			{
 				throw new ValidationException(mandatoryPath, otpRequest.getMessageType().equals(GssoMessageType.SOAP)?JsonResultCode.WS_STATE_NOT_USE_SERVICE :JsonResultCode.STATE_NOT_USE_SERVICE , "not use service");
 			}
 			appInstance.getProfile().setOper(OperName.AIS);
