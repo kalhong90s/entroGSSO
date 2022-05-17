@@ -151,6 +151,9 @@ public enum ConfigName {
 
 	, USMP_BY_PASS_CONFIG_SERVICE_LIST("USMP-By-Pass-Config-Service-List")
 
+	, LONG_SMPP_GSMNETWORKSPECIFICFEATURES("Long-SMPP-GSMNetworkSpecificFeatures")
+
+
 
 	;
 

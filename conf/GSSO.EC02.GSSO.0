@@ -170,5 +170,7 @@
         <Maximum-Hack-Time value="3" />
         <!-- Easy app connect Gsso 3/3/2022 -->
         <USMP-By-Pass-Config-Service-List value="myChannel,myAIS,robot,GOMO,serviceByPass,GSSO" />
+        <Long-SMPP-GSMNetworkSpecificFeatures value="UDHIIndicator " />
+
     </warm>
 </configuration>

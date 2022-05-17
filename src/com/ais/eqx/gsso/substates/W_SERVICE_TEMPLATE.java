@@ -604,7 +604,7 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 
 					/** FOR SMS **/
 					if (otpChannel.equalsIgnoreCase(OTPChannel.SMS)) {
-						rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
+						rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
 								composeDebugLog));
 
 					}
@@ -616,7 +616,7 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 					}
 					/** FOR ALL **/
 					else if(otpChannel.equalsIgnoreCase(OTPChannel.ALL)) {
-						rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
+						rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
 								composeDebugLog));
 
 						rawDatasOutgoing.add(GssoConstructMessage.createEMAILReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
@@ -648,7 +648,7 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 					
 					/** FOR SMS **/
 					if (isSms == true && isEmail == false) {
-						rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
+						rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
 								composeDebugLog));
 
 					}
@@ -660,7 +660,7 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 					}
 					/** FOR ALL **/
 					else if(isSms == true && isEmail == true) {
-						rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
+						rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
 								composeDebugLog));
 
 						rawDatasOutgoing.add(GssoConstructMessage.createEMAILReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
@@ -694,7 +694,7 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 					
 					/** FOR SMS **/
 					if (isSms == true && isEmail == false) {
-						rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
+						rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
 								composeDebugLog));
 
 					}
@@ -706,7 +706,7 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 					}
 					/** FOR ALL **/
 					else if(isSms == true && isEmail == true) {
-						rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
+						rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
 								composeDebugLog));
 
 						rawDatasOutgoing.add(GssoConstructMessage.createEMAILReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
@@ -727,7 +727,7 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 							thisServiceTemplate.getSeedkey()));
 					
 					/** FOR SMS **/
-					rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
+					rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
 							composeDebugLog));
 
 				}
@@ -744,7 +744,7 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 							thisServiceTemplate.getSeedkey()));
 					
 					/** FOR SMS **/
-					rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
+					rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
 							composeDebugLog));
 
 				}
@@ -810,7 +810,7 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 					/** FOR SMS **/
 					if (otpChannel.equalsIgnoreCase(OTPChannel.SMS)) {
 
-						rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
+						rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
 								composeDebugLog));
 
 					}
@@ -824,7 +824,7 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 					/** FOR ALL **/
 					else {
 						
-						rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
+						rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
 								composeDebugLog));
 
 						rawDatasOutgoing.add(GssoConstructMessage.createEMAILReqMessage(origInvoke, thisServiceTemplate, ec02Instance,

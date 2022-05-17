@@ -713,11 +713,6 @@ public class GssoConstructMessage {
 
 			/* SAVE SMSCDeliveryReceipt */
 			origInvokeProfile.setRealSMSCDeliveryReceipt(serviceTemplate.getSmscDeliveryReceipt());
-			ArrayList<String> listOfSms = splitSmsBody(smsBody,language);
-
-			output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(listOfSms.get(0), msisdn,
-					language, smsSender, serviceTemplate.getSmscDeliveryReceipt(),
-					sendOneTimePW.getWaitDR(), serviceKey, sendOneTimePW.getLifeTimeoutMins()));
 
 			output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(GssoDataManagement.convertStringToHex(smsBody, true), msisdn,
 					language, smsSender, GssoDataManagement.convertStringToHex(smsBody, false), serviceTemplate.getSmscDeliveryReceipt(),
@@ -828,8 +823,8 @@ public class GssoConstructMessage {
 		return output;
 	}
 
-	public static ArrayList <EquinoxRawData> createSMSReqMessage(final String origInvoke, final GssoServiceTemplate serviceTemplate,
-													 EC02Instance ec02Instance, GssoComposeDebugLog composeDebugLog ,String test) {
+	public static ArrayList <EquinoxRawData> createSMSReqMessageV2(final String origInvoke, final GssoServiceTemplate serviceTemplate,
+													 EC02Instance ec02Instance, GssoComposeDebugLog composeDebugLog) {
 		ArrayList <EquinoxRawData> rawDataArrayList = new ArrayList<EquinoxRawData>();
 
 		EquinoxRawData output = new EquinoxRawData();
@@ -910,10 +905,26 @@ public class GssoConstructMessage {
 
 			/* SAVE SMSCDeliveryReceipt */
 			origInvokeProfile.setRealSMSCDeliveryReceipt(serviceTemplate.getSmscDeliveryReceipt());
+			ArrayList<String> listOfSms = splitSmsBody(smsBody, language);
+			if (listOfSms.size() > 1) {
+				for (String sms : listOfSms) {
+					output = new EquinoxRawData();
+					setRrawDataAttr(ec02Instance,origInvoke,serviceTemplate,appInstance,output,composeDebugLog);
+					output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(sms, otpMobile,
+							language, smsSender, serviceTemplate.getSmscDeliveryReceipt(),
+							sendWSAuthOTPWithIDRequest.getWaitDR(), serviceKey, sendWSAuthOTPWithIDRequest.getAddTimeoutMins(),true));
 
-			output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(GssoDataManagement.convertStringToHex(smsBody, true), otpMobile,
-					language, smsSender, GssoDataManagement.convertStringToHex(smsBody, false), serviceTemplate.getSmscDeliveryReceipt(),
-					sendWSAuthOTPWithIDRequest.getWaitDR(), serviceKey, sendWSAuthOTPWithIDRequest.getAddTimeoutMins()));
+					rawDataArrayList.add(output);
+				}
+			}else{
+				setRrawDataAttr(ec02Instance,origInvoke,serviceTemplate,appInstance,output,composeDebugLog);
+				output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(listOfSms.get(0), otpMobile,
+						language, smsSender, serviceTemplate.getSmscDeliveryReceipt(),
+						sendWSAuthOTPWithIDRequest.getWaitDR(), serviceKey, sendWSAuthOTPWithIDRequest.getAddTimeoutMins(),false));
+				rawDataArrayList.add(output);
+
+			}
+
 		}
 		else if(origInvokeProfile.getGssoOrigCommand().equals(GssoCommand.WS_AUTHEN_OTP)){
 
@@ -957,9 +968,25 @@ public class GssoConstructMessage {
 			/* SAVE SMSCDeliveryReceipt */
 			origInvokeProfile.setRealSMSCDeliveryReceipt(serviceTemplate.getSmscDeliveryReceipt());
 
-			output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(GssoDataManagement.convertStringToHex(smsBody, true), otpMoblie,
-					language, smsSender, GssoDataManagement.convertStringToHex(smsBody, false), serviceTemplate.getSmscDeliveryReceipt(),
-					sendWSAuthOTPRequest.getWaitDR(), serviceKey, sendWSAuthOTPRequest.getAddTimeoutMins()));
+			ArrayList<String> listOfSms = splitSmsBody(smsBody, language);
+			if (listOfSms.size() > 1) {
+				for (String sms : listOfSms) {
+					output = new EquinoxRawData();
+					setRrawDataAttr(ec02Instance,origInvoke,serviceTemplate,appInstance,output,composeDebugLog);
+					output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(sms, otpMoblie,
+							language, smsSender, serviceTemplate.getSmscDeliveryReceipt(),
+							sendWSAuthOTPRequest.getWaitDR(), serviceKey, sendWSAuthOTPRequest.getAddTimeoutMins(),true));
+
+					rawDataArrayList.add(output);
+				}
+			}else{
+				setRrawDataAttr(ec02Instance,origInvoke,serviceTemplate,appInstance,output,composeDebugLog);
+				output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(listOfSms.get(0), otpMoblie,
+						language, smsSender, serviceTemplate.getSmscDeliveryReceipt(),
+						sendWSAuthOTPRequest.getWaitDR(), serviceKey, sendWSAuthOTPRequest.getAddTimeoutMins(),false));
+				rawDataArrayList.add(output);
+
+			}
 
 		}
 		else if(origInvokeProfile.getGssoOTPRequest()!=null){
@@ -1018,26 +1045,23 @@ public class GssoConstructMessage {
 			ArrayList<String> listOfSms = splitSmsBody(smsBody, language);
 			if (listOfSms.size() > 1) {
 				for (String sms : listOfSms) {
-					setRrawDataAttr(origInvoke,serviceTemplate,appInstance,output);
+					output = new EquinoxRawData();
+					setRrawDataAttr(ec02Instance,origInvoke,serviceTemplate,appInstance,output,composeDebugLog);
 					output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(sms, msisdn,
 							language, smsSender, serviceTemplate.getSmscDeliveryReceipt(),
-							sendOneTimePW.getWaitDR(), serviceKey, sendOneTimePW.getLifeTimeoutMins()));
+							sendOneTimePW.getWaitDR(), serviceKey, sendOneTimePW.getLifeTimeoutMins(),true));
 
 					rawDataArrayList.add(output);
 				}
 			}else{
-				setRrawDataAttr(origInvoke,serviceTemplate,appInstance,output);
+				setRrawDataAttr(ec02Instance,origInvoke,serviceTemplate,appInstance,output,composeDebugLog);
 				output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(listOfSms.get(0), msisdn,
 						language, smsSender, serviceTemplate.getSmscDeliveryReceipt(),
-						sendOneTimePW.getWaitDR(), serviceKey, sendOneTimePW.getLifeTimeoutMins()));
+						sendOneTimePW.getWaitDR(), serviceKey, sendOneTimePW.getLifeTimeoutMins(),false));
 				rawDataArrayList.add(output);
 
 			}
 
-
-			output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(GssoDataManagement.convertStringToHex(smsBody, true), msisdn,
-					language, smsSender, GssoDataManagement.convertStringToHex(smsBody, false), serviceTemplate.getSmscDeliveryReceipt(),
-					sendOneTimePW.getWaitDR(), serviceKey, sendOneTimePW.getLifeTimeoutMins()));
 		}
 		else if(origInvokeProfile.getGssoOrigCommand().equals(GssoCommand.WS_CREAT_OTP)){
 
@@ -1081,9 +1105,25 @@ public class GssoConstructMessage {
 			/* SAVE SMSCDeliveryReceipt */
 			origInvokeProfile.setRealSMSCDeliveryReceipt(serviceTemplate.getSmscDeliveryReceipt());
 
-			output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(GssoDataManagement.convertStringToHex(smsBody, true), msisdn,
-					language, smsSender, GssoDataManagement.convertStringToHex(smsBody, false), serviceTemplate.getSmscDeliveryReceipt(),
-					sendWSCreateOTPRequest.getWaitDR() , serviceKey, sendWSCreateOTPRequest.getAddTimeoutMins()));
+			ArrayList<String> listOfSms = splitSmsBody(smsBody, language);
+			if (listOfSms.size() > 1) {
+				for (String sms : listOfSms) {
+					output = new EquinoxRawData();
+					setRrawDataAttr(ec02Instance,origInvoke,serviceTemplate,appInstance,output,composeDebugLog);
+					output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(sms, msisdn,
+							language, smsSender, serviceTemplate.getSmscDeliveryReceipt(),
+							sendWSCreateOTPRequest.getWaitDR(), serviceKey, sendWSCreateOTPRequest.getAddTimeoutMins(),true));
+
+					rawDataArrayList.add(output);
+				}
+			}else{
+				setRrawDataAttr(ec02Instance,origInvoke,serviceTemplate,appInstance,output,composeDebugLog);
+				output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(listOfSms.get(0), msisdn,
+						language, smsSender, serviceTemplate.getSmscDeliveryReceipt(),
+						sendWSCreateOTPRequest.getWaitDR(), serviceKey, sendWSCreateOTPRequest.getAddTimeoutMins(),false));
+				rawDataArrayList.add(output);
+
+			}
 
 		}
 		else if(origInvokeProfile.getGssoOrigCommand().equals(GssoCommand.WS_GENERATE_OTP)){
@@ -1128,27 +1168,34 @@ public class GssoConstructMessage {
 			/* SAVE SMSCDeliveryReceipt */
 			origInvokeProfile.setRealSMSCDeliveryReceipt(serviceTemplate.getSmscDeliveryReceipt());
 
-			output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(GssoDataManagement.convertStringToHex(smsBody, true), msisdn,
-					language, smsSender, GssoDataManagement.convertStringToHex(smsBody, false), serviceTemplate.getSmscDeliveryReceipt(),
-					sendWSGenerateOTPRequest.getWaitDR(), serviceKey, sendWSGenerateOTPRequest.getAddTimeoutMins()));
+			ArrayList<String> listOfSms = splitSmsBody(smsBody, language);
+			if (listOfSms.size() > 1) {
+				for (String sms : listOfSms) {
+					output = new EquinoxRawData();
+					setRrawDataAttr(ec02Instance,origInvoke,serviceTemplate,appInstance,output,composeDebugLog);
+					output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(sms, msisdn,
+							language, smsSender, serviceTemplate.getSmscDeliveryReceipt(),
+							sendWSGenerateOTPRequest.getWaitDR(), serviceKey, sendWSGenerateOTPRequest.getAddTimeoutMins(),true));
 
-		}
-		ec02Instance.incrementsStat(Statistic.GSSO_SEND_SMPPGW_SUBMITSM_REQUEST.getStatistic());
+					rawDataArrayList.add(output);
+				}
+			}else{
+				setRrawDataAttr(ec02Instance,origInvoke,serviceTemplate,appInstance,output,composeDebugLog);
+				output.setRawMessage(GssoConstructMessage.createSMSBodyMessage(listOfSms.get(0), msisdn,
+						language, smsSender, serviceTemplate.getSmscDeliveryReceipt(),
+						sendWSGenerateOTPRequest.getWaitDR(), serviceKey, sendWSGenerateOTPRequest.getAddTimeoutMins(),false));
+				rawDataArrayList.add(output);
 
-		// //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^WRITE
-		// DETAILS^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-		if (ConfigureTool.isWriteLog(ConfigName.DEBUG_LOG_ENABLED)) {
-			composeDebugLog.addStatisticOut(Statistic.GSSO_SEND_SMPPGW_SUBMITSM_REQUEST.getStatistic());
+			}
+
 		}
 
 		return rawDataArrayList;
 	}
-	public static void setRrawDataAttr (final String origInvoke, final GssoServiceTemplate serviceTemplate,
-										APPInstance appInstance, EquinoxRawData output ){
+	public static void setRrawDataAttr (EC02Instance ec02Instance,final String origInvoke, final GssoServiceTemplate serviceTemplate,
+										APPInstance appInstance, EquinoxRawData output ,  GssoComposeDebugLog composeDebugLog){
 
 		String invokeOutgoing = InvokeSubStates.getInvokeOutgoing(origInvoke, SubStates.W_SEND_SMS.toString());
-
-		output = new EquinoxRawData();
 		output.setName(EventName.SMPP);
 		output.setCType(EventCtype.SMS);
 		output.setType(EventAction.REQUEST);
@@ -1173,6 +1220,14 @@ public class GssoConstructMessage {
 			// ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^WRITE
 			// DETAILS^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 			origInvokeProfile.setSMPPRoaming(true);
+		}
+
+		ec02Instance.incrementsStat(Statistic.GSSO_SEND_SMPPGW_SUBMITSM_REQUEST.getStatistic());
+
+		// //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^WRITE
+		// DETAILS^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+		if (ConfigureTool.isWriteLog(ConfigName.DEBUG_LOG_ENABLED)) {
+			composeDebugLog.addStatisticOut(Statistic.GSSO_SEND_SMPPGW_SUBMITSM_REQUEST.getStatistic());
 		}
 
 	}
@@ -1610,7 +1665,7 @@ public class GssoConstructMessage {
 	}
 	public static String createSMSBodyMessage(final String messageHex, final String msisdn, final String language,
 											  final String smsSender, final String smsCDeliveryReceiptE01, final String realWaitDR,
-											  final String serviceKey, final String lifeTimeoutMins) {
+											  final String serviceKey, final String lifeTimeoutMins ,boolean isLong) {
 
 		StringBuilder smsBody = new StringBuilder();
 		boolean isFoundEC02MobileFormat = false;
@@ -1653,7 +1708,7 @@ public class GssoConstructMessage {
 
 		messagingMode = ConfigureTool.getConfigureSMPP(ConfigName.SMPP_MESSAGING_MODE);
 		messageType = ConfigureTool.getConfigureSMPP(ConfigName.SMPP_MESSAGE_TYPE);
-		gsmNetworkSpecificFeatures = ConfigureTool.getConfigureSMPP(ConfigName.SMPP_GSM_NETWORK_SPECIFIC_FEATURES);
+		gsmNetworkSpecificFeatures = isLong? ConfigureTool.getConfigureSMPP(ConfigName.LONG_SMPP_GSMNETWORKSPECIFICFEATURES):ConfigureTool.getConfigureSMPP(ConfigName.SMPP_GSM_NETWORK_SPECIFIC_FEATURES);
 
 		protocolId = ConfigureTool.getConfigureSMPP(ConfigName.SMPP_PROTOCOL_ID);
 		priorityFlag = ConfigureTool.getConfigureSMPP(ConfigName.SMPP_PRIORITY_FLAG);
@@ -1683,10 +1738,10 @@ public class GssoConstructMessage {
 			waitDR = realWaitDR;
 		}
 
-		if (smsCDeliveryReceipt.toUpperCase().equals(BooleanString.TRUE) && waitDR.toUpperCase().equals(BooleanString.TRUE)) {
+		if (smsCDeliveryReceipt.equalsIgnoreCase(BooleanString.TRUE) && waitDR.equalsIgnoreCase(BooleanString.TRUE)) {
 			smsCDeliveryReceiptToSMPP = "SuccessOrFailure";
 		}
-		else if (smsCDeliveryReceipt.toUpperCase().equals(BooleanString.TRUE) || waitDR.toUpperCase().equals(BooleanString.TRUE)) {
+		else if (smsCDeliveryReceipt.equalsIgnoreCase(BooleanString.TRUE) || waitDR.equalsIgnoreCase(BooleanString.TRUE)) {
 			smsCDeliveryReceiptToSMPP = "SuccessOrFailure";
 		}
 		else {

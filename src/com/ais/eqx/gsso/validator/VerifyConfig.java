@@ -768,5 +768,17 @@ public class VerifyConfig {
 			throw new ConfigException(ConfigName.USMP_BY_PASS_CONFIG_SERVICE_LIST.getName() + valueWrong);
 		}
 
+		try {
+			valueWrong = " : Not Found";
+			if (ConfigureTool.getConfigure(ConfigName.LONG_SMPP_GSMNETWORKSPECIFICFEATURES) == null) {
+				throw new ConfigException(ConfigName.LONG_SMPP_GSMNETWORKSPECIFICFEATURES.getName() + valueWrong);
+			}
+		}
+		catch (Exception e) {
+			throw new ConfigException(ConfigName.LONG_SMPP_GSMNETWORKSPECIFICFEATURES.getName() + valueWrong);
+		}
+
+
+
 	}
 }
