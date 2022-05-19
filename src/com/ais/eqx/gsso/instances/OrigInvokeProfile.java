@@ -1,5 +1,6 @@
 package com.ais.eqx.gsso.instances;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import com.ais.eqx.gsso.enums.GssoCommand;
@@ -54,6 +55,11 @@ public class OrigInvokeProfile {
 
 	/** isDR will used when isSMS is active **/
 	private HashMap<String, String>	mapSentOTPResult		= new HashMap<String, String>();
+
+	private int smsOutgoing ;
+	private int smsIncoming;
+	private ArrayList<EquinoxRawData> rawDatasOut = new ArrayList<EquinoxRawData>();
+
 
 	public long getSubmitSmRequestTime() {
 		return submitSmRequestTime;
@@ -295,4 +301,27 @@ public class OrigInvokeProfile {
 		this.refundFlag = refundFlag;
 	}
 
+	public int getSmsOutgoing() {
+		return smsOutgoing;
+	}
+
+	public void setSmsOutgoing(int smsOutgoing) {
+		this.smsOutgoing = smsOutgoing;
+	}
+
+	public int getSmsIncoming() {
+		return smsIncoming;
+	}
+
+	public void setSmsIncoming(int smsIncoming) {
+		this.smsIncoming = smsIncoming;
+	}
+
+	public ArrayList<EquinoxRawData> getRawDatasOut() {
+		return rawDatasOut;
+	}
+
+	public void setRawDatasOut(ArrayList<EquinoxRawData> rawDatasOut) {
+		this.rawDatasOut = rawDatasOut;
+	}
 }

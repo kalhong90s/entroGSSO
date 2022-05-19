@@ -108,7 +108,13 @@ public class W_SEND_SMS implements IAFSubState {
 
 		/************** INITIAL *****************/
 		sendSmsInitInstanceAndLog(equinoxRawData, abstractAF, ec02Instance);
-		
+		rawDatasOut = origInvokeProfile.getRawDatasOut();
+
+		origInvokeProfile.setSmsIncoming(origInvokeProfile.getSmsIncoming()+1);
+		boolean completely = origInvokeProfile.getSmsIncoming()==origInvokeProfile.getSmsOutgoing();
+		Log.d("###########  Count IncommingMsg :"+origInvokeProfile.getSmsIncoming()+"/"+origInvokeProfile.getSmsOutgoing()+" ########### ");
+
+
 		/************** CODING ******************/
 //		System.out.println("Start W_SEND_SMS");
 
@@ -128,7 +134,10 @@ public class W_SEND_SMS implements IAFSubState {
 				this.ec02Instance.incrementsStat(Statistic.GSSO_RECEIVED_SMPPGW_SUBMITSM_RESPONSE_SUCCESS.getStatistic());
 
 				// RECEIVING THE VALID SUBMITSM RESPONSE
-				normalCaseSuccess();
+				if(completely && rawDatasOut.size() == 0 ){
+					normalCaseSuccess();
+				}
+
 
 				if (ConfigureTool.isWriteLog(ConfigName.DEBUG_LOG_ENABLED)) {
 					this.composeDebugLog.addStatisticIn(Statistic.GSSO_RECEIVED_SMPPGW_SUBMITSM_RESPONSE_SUCCESS.getStatistic());
@@ -175,7 +184,9 @@ public class W_SEND_SMS implements IAFSubState {
 
 				// MANDATORY PARAMETERS IS MISSING OR ANY OF OPTIONAL PARAMETERS
 				// IS CONFLICTION
-				errorCase();
+				if(rawDatasOut.size() ==0){
+					errorCase();
+				}
 
 				if (ConfigureTool.isWriteLog(ConfigName.DEBUG_LOG_ENABLED)) {
 					this.composeDebugLog.addStatisticIn(Statistic.GSSO_RECEIVED_BAD_SMPPGW_SUBMITSM_RESPONSE.getStatistic());
@@ -190,8 +201,9 @@ public class W_SEND_SMS implements IAFSubState {
 			// UNNORMAL
 
 			this.mapDetails.setNoFlow();
-
-			unNormalCase();
+			if(rawDatasOut.size() ==0) {
+				unNormalCase();
+			}
 
 			if (ConfigureTool.isWriteLog(ConfigName.DEBUG_LOG_ENABLED)) {
 				this.composeDebugLog.setMessageValidator("-");
@@ -202,7 +214,12 @@ public class W_SEND_SMS implements IAFSubState {
 		/* SAVE LOG */
 		sendSmsSaveLog();
 
-		return this.rawDatasOut;
+		origInvokeProfile.setRawDatasOut(rawDatasOut);
+		if(completely){
+			return this.rawDatasOut;
+
+		}
+		return null;
 	}
 
 	private void normalCaseSuccess() {

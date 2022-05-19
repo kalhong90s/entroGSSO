@@ -370,8 +370,9 @@ public class InstanceValidator {
 			{
 				throw new ValidationException(mandatoryPath, otpRequest.getMessageType().equals(GssoMessageType.SOAP)?JsonResultCode.WS_STATE_NOT_USE_SERVICE :JsonResultCode.STATE_NOT_USE_SERVICE , "not use service");
 			}
+			String reqSmsLanguage = otpRequest.getSendOneTimePW().getSmsLanguage();
 			appInstance.getProfile().setOper(OperName.AIS);
-			appInstance.getProfile().setLanguage(sendOneTimePW.getSmsLanguage());
+			appInstance.getProfile().setLanguage(null != reqSmsLanguage && reqSmsLanguage.matches("0|1")?reqSmsLanguage:GssoLanguage.ALL);
 		}
 
 

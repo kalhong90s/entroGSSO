@@ -154,7 +154,6 @@ public enum ConfigName {
 	, LONG_SMPP_GSMNETWORKSPECIFICFEATURES("Long-SMPP-GSMNetworkSpecificFeatures")
 
 
-
 	;
 
 	private String	name;

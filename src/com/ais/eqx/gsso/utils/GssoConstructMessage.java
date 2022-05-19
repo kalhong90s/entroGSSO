@@ -882,12 +882,8 @@ public class GssoConstructMessage {
 
 			serviceKey = appInstance.getMapE01dataofService().get(sendWSAuthOTPWithIDRequest.getService().toUpperCase()).getServiceKey();
 
-			if (GssoLanguage.THAI.equals(language)) {
-				smsBody = serviceTemplate.getSmsBodyThai();
-			}
-			else {
-				smsBody = serviceTemplate.getSmsBodyEng();
-			}
+			smsBody = selectlanguage(language,serviceTemplate.getSmsBodyThai(),serviceTemplate.getSmsBodyEng());
+
 
 
 			smsBody = smsBody.replaceAll("<#SERVICE>", transactionData.getService());
@@ -944,12 +940,8 @@ public class GssoConstructMessage {
 
 			serviceKey = appInstance.getMapE01dataofService().get(sendWSAuthOTPRequest.getService().toUpperCase()).getServiceKey();
 
-			if (GssoLanguage.THAI.equals(language)) {
-				smsBody = serviceTemplate.getSmsBodyThai();
-			}
-			else {
-				smsBody = serviceTemplate.getSmsBodyEng();
-			}
+			smsBody = selectlanguage(language,serviceTemplate.getSmsBodyThai(),serviceTemplate.getSmsBodyEng());
+
 
 
 			smsBody = smsBody.replaceAll("<#SERVICE>", transactionData.getService());
@@ -1016,13 +1008,7 @@ public class GssoConstructMessage {
 			}
 			else {
 				serviceKey = appInstance.getMapE01dataofService().get(sendOneTimePW.getService().toUpperCase()).getServiceKey();
-
-				if (GssoLanguage.THAI.equals(language)) {
-					smsBody = serviceTemplate.getSmsBodyThai();
-				}
-				else {
-					smsBody = serviceTemplate.getSmsBodyEng();
-				}
+				smsBody = selectlanguage(language,serviceTemplate.getSmsBodyThai(),serviceTemplate.getSmsBodyEng());
 			}
 
 			smsBody = smsBody.replaceAll("<#SERVICE>", transactionData.getService());
@@ -1081,12 +1067,8 @@ public class GssoConstructMessage {
 
 			serviceKey = appInstance.getMapE01dataofService().get(sendWSCreateOTPRequest.getService().toUpperCase()).getServiceKey();
 
-			if (GssoLanguage.THAI.equals(language)) {
-				smsBody = serviceTemplate.getSmsBodyThai();
-			}
-			else {
-				smsBody = serviceTemplate.getSmsBodyEng();
-			}
+			smsBody = selectlanguage(language,serviceTemplate.getSmsBodyThai(),serviceTemplate.getSmsBodyEng());
+
 
 
 			smsBody = smsBody.replaceAll("<#SERVICE>", transactionData.getService());
@@ -1144,12 +1126,8 @@ public class GssoConstructMessage {
 
 			serviceKey = appInstance.getMapE01dataofService().get(sendWSGenerateOTPRequest.getService().toUpperCase()).getServiceKey();
 
-			if (GssoLanguage.THAI.equals(language)) {
-				smsBody = serviceTemplate.getSmsBodyThai();
-			}
-			else {
-				smsBody = serviceTemplate.getSmsBodyEng();
-			}
+			smsBody = selectlanguage(language,serviceTemplate.getSmsBodyThai(),serviceTemplate.getSmsBodyEng());
+
 
 
 			smsBody = smsBody.replaceAll("<#SERVICE>", transactionData.getService());
@@ -1189,8 +1167,17 @@ public class GssoConstructMessage {
 			}
 
 		}
-
+		origInvokeProfile.setSmsOutgoing(rawDataArrayList.size());
 		return rawDataArrayList;
+	}
+	public static String selectlanguage (String language ,String th,String en){
+		if(GssoLanguage.ALL.equalsIgnoreCase(language)){
+			return  th+" "+en;
+		}else if (GssoLanguage.THAI.equals(language)) {
+			return  th;
+		}
+		return  en;
+
 	}
 	public static void setRrawDataAttr (EC02Instance ec02Instance,final String origInvoke, final GssoServiceTemplate serviceTemplate,
 										APPInstance appInstance, EquinoxRawData output ,  GssoComposeDebugLog composeDebugLog){
@@ -1627,34 +1614,32 @@ public class GssoConstructMessage {
 	public static ArrayList<String> splitSmsBody(String smsBody,String language){
 		ArrayList<String> listOfSms = new ArrayList<String>();
 
-		if (language.equals(GssoLanguage.THAI)) {
+		if (language.equals(GssoLanguage.THAI) ||language.equals(GssoLanguage.ALL) ) {
 			smsBody = GssoDataManagement.convertStringToHexNotPrefix(smsBody, true);
 		}
 		else {
 			smsBody = GssoDataManagement.convertStringToHexNotPrefix(smsBody, false);
 		}
 
-		if(smsBody.length()>400) {
-			// random hexadecimal 6 digit
-			String s = String.format("%x", (int) (Math.random() * 10000000));
+		if(smsBody.length()>488) {
 
 			// random String 2 digit
-			String AA = RandomStringUtils.random(2, "ABCDE");
+			String AA = RandomStringUtils.random(2, "ABCDEF");
 
 			// cal sms
-			int BB = smsBody.length() / 400 + (smsBody.length() % 400 > 1 ? 1 : 0);
+			int BB = smsBody.length() / 488 + (smsBody.length() % 488 > 1 ? 1 : 0);
 			int CC = 1;
 
-			String prefix = "0x" + s + AA + "0" + BB ;
+			String prefix = "0x,050003" + AA + (BB>9? BB : "0" +BB) ;//Ex BB=9>09 ,BB =11>>11
 
-			while (smsBody.length() > 400) {
-				String splitBody = smsBody.substring(0, 400);
-				listOfSms.add(prefix  + "0" + CC + "," +splitBody);
-				smsBody = smsBody.substring(400);
+			while (smsBody.length() > 488) {
+				String splitBody = smsBody.substring(0, 488);
+				listOfSms.add(prefix  +(CC>9? CC : "0" +CC) + "" +splitBody);
+				smsBody = smsBody.substring(488);
 				CC++;
 
 			}
-			listOfSms.add(prefix  + "0" + CC + ","+ smsBody);
+			listOfSms.add(prefix  + "0" + CC + ""+ smsBody);
 
 
 		}else {
@@ -1753,7 +1738,7 @@ public class GssoConstructMessage {
 		intermediateNotification = ConfigureTool.getConfigureSMPP(ConfigName.SMPP_INTERMEDIATE_NOTIFICATION);
 		replaceIfPresentFlag = ConfigureTool.getConfigureSMPP(ConfigName.SMPP_REPLACE_IF_PRESENT_FLAG);
 
-		if (language.equals(GssoLanguage.THAI)) {
+		if (language.equals(GssoLanguage.THAI) || language.equalsIgnoreCase(GssoLanguage.ALL)) {
 			dataCoding = "UCS2";
 		}
 		else {
