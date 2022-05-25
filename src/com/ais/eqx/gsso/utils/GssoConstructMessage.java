@@ -1620,22 +1620,25 @@ public class GssoConstructMessage {
 		else {
 			smsBody = GssoDataManagement.convertStringToHexNotPrefix(smsBody, false);
 		}
+		int maxSms = ConfigureTool.getConfigureInteger(ConfigName.MAX_SMS_BODY)*2 <1?350:ConfigureTool.getConfigureInteger(ConfigName.MAX_SMS_BODY)*2;
 
-		if(smsBody.length()>488) {
+		if(smsBody.length()>maxSms) {
+
+			int maxSmsWithoutPrefix = maxSms-12;
 
 			// random String 2 digit
 			String AA = RandomStringUtils.random(2, "ABCDEF");
 
 			// cal sms
-			int BB = smsBody.length() / 488 + (smsBody.length() % 488 > 1 ? 1 : 0);
+			int BB = smsBody.length() / maxSmsWithoutPrefix + (smsBody.length() % maxSmsWithoutPrefix > 1 ? 1 : 0);
 			int CC = 1;
 
 			String prefix = "0x,050003" + AA + (BB>9? BB : "0" +BB) ;//Ex BB=9>09 ,BB =11>>11
 
-			while (smsBody.length() > 488) {
-				String splitBody = smsBody.substring(0, 488);
+			while (smsBody.length() > maxSmsWithoutPrefix) {
+				String splitBody = smsBody.substring(0, maxSmsWithoutPrefix);
 				listOfSms.add(prefix  +(CC>9? CC : "0" +CC) + "" +splitBody);
-				smsBody = smsBody.substring(488);
+				smsBody = smsBody.substring(maxSmsWithoutPrefix);
 				CC++;
 
 			}

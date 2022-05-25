@@ -18,7 +18,7 @@ public class AppTester_Flow_DebugLog {
 	final static String             incomingMessage =               "./example.msg/debug.log";
 	final static String             configEC02 =                    "./conf/GSSO.EC02.GSSO.0";
 	final static String[]           app =                           {"GSSO", "GSSO", "0"};
-	final static boolean            replaceInvokeAndInstance =      false;
+	final static boolean            replaceInvokeAndInstance =      true;
 	final static boolean            replaceOTP =                    true;
 	final static boolean            replaceLog =                    true;
 

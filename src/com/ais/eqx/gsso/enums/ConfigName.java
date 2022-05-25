@@ -153,6 +153,10 @@ public enum ConfigName {
 
 	, LONG_SMPP_GSMNETWORKSPECIFICFEATURES("Long-SMPP-GSMNetworkSpecificFeatures")
 
+	, MAX_SMS_BODY("Max-Sms-Body-length")
+
+
+
 
 	;
 

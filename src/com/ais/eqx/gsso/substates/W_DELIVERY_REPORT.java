@@ -1018,6 +1018,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 				String invokeTimeoutDR = InvokeFilter.getOriginInvoke(entryTimeOutDR.getKey());
 				if (origInvoke.equals(invokeTimeoutDR)) {
 					iteratorTimeOutDR.remove();
+					break;
 				}
 
 			}
@@ -1082,9 +1083,9 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 		while (iterator.hasNext()) {
 			Entry<String, OrigInvokeProfile> entry = (Entry<String, OrigInvokeProfile>) iterator.next();
 
-			if (entry.getValue().getSmMessageId().equals(drId)) {
+			if (entry.getValue().getMsgIdList().contains(drId)) {
 
-				this.messageId = entry.getValue().getSmMessageId();
+				this.messageId = drId;
 
 				this.origInvoke = entry.getKey();
 
@@ -1099,6 +1100,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 					String invokeTimeoutDR = InvokeFilter.getOriginInvoke(entryTimeOutDR.getKey());
 					if (origInvoke.equals(invokeTimeoutDR)) {
 						iteratorTimeOutDR.remove();
+						break;
 					}
 				}
 

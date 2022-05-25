@@ -501,6 +501,7 @@ public class GssoDataManagement {
 
 				if (invokeTimeoutDR.equals(origInvoke)) {
 					iteratorWDR.remove();
+					break;
 				}
 			}
 		}

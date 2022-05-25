@@ -68,7 +68,7 @@
         <!-- Email Host Name -->
         <Email-URI-Name value="mail.ais.co.th" /><!-- mandatory -->
         <!-- Severs Interface -->
-        <IDLE-Service value="GSSO.ES05.SERVER.1" /><!-- mandatory -->
+        <IDLE-Service value="GSSO.ES05.JSON.0" /><!-- mandatory -->
         <IDLE-Service value="GSSO.ES05.SOAP" /><!-- mandatory -->
         <!-- Clients Interface -->
         <USMP-InquirySub-Interface value="GSSO.ES04.USMP" /><!-- mandatory -->
@@ -107,7 +107,7 @@
         <!-- MSISDN Length Without Prefix Number -->
         <MSISDN_Digit_Length value="9" /><!-- mandatory -->
         <!-- Sms RETRY_REJECT_LIMIT -->
-        <Sms-Retries value="0" /><!-- mandatory -->
+        <Sms-Retries value="1" /><!-- mandatory -->
         <!-- Email RETRY_REJECT_LIMIT -->
         <Email-Retries value="2" /><!-- mandatory -->
         <!-- PostpaidCosLists -->
@@ -169,8 +169,10 @@
         <rPCEF-Refund-URL value="/rpcef/v1/refund-management" />
         <Maximum-Hack-Time value="3" />
         <!-- Easy app connect Gsso 3/3/2022 -->
-        <USMP-By-Pass-Config-Service-List value="myChannel,myAIS,robot,GOMO,serviceByPass,GSSO" />
+        <USMP-By-Pass-Config-Service-List value="myChannel,myAIS,robot,GOMO,codapay,GSSO" />
         <Long-SMPP-GSMNetworkSpecificFeatures value="UDHIIndicator " />
+        <Max-Sms-Body-length value="140" />
+
 
     </warm>
 </configuration>

@@ -59,6 +59,7 @@ public class OrigInvokeProfile {
 	private int smsOutgoing ;
 	private int smsIncoming;
 	private ArrayList<EquinoxRawData> rawDatasOut = new ArrayList<EquinoxRawData>();
+	private ArrayList <String> msgIdList  = new ArrayList<String>();
 
 
 	public long getSubmitSmRequestTime() {
@@ -323,5 +324,13 @@ public class OrigInvokeProfile {
 
 	public void setRawDatasOut(ArrayList<EquinoxRawData> rawDatasOut) {
 		this.rawDatasOut = rawDatasOut;
+	}
+
+	public ArrayList<String> getMsgIdList() {
+		return msgIdList;
+	}
+
+	public void setMsgIdList(ArrayList<String> msgIdList) {
+		this.msgIdList = msgIdList;
 	}
 }

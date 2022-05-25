@@ -130,12 +130,15 @@ public class W_SEND_SMS implements IAFSubState {
 
 				// SET MESSAGE ID TO INSTANCE
 				origInvokeProfile.setSmMessageId("" + Long.parseLong(sendsmReq.getMessageId(), 16));
-
+				origInvokeProfile.getMsgIdList().add("" + Long.parseLong(sendsmReq.getMessageId(), 16));
 				this.ec02Instance.incrementsStat(Statistic.GSSO_RECEIVED_SMPPGW_SUBMITSM_RESPONSE_SUCCESS.getStatistic());
 
 				// RECEIVING THE VALID SUBMITSM RESPONSE
 				if(completely && rawDatasOut.size() == 0 ){
 					normalCaseSuccess();
+				}else {
+					GssoDataManagement.setTimeoutOfWaitDR(appInstance, origInvoke);
+					origInvokeProfile.setSubmitSmRespTime(this.composeDetailsLog.getDetailTimeIncoming());
 				}
 
 

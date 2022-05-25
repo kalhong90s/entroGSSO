@@ -321,6 +321,7 @@ public class TimeoutManagement {
 						 * Clear Invoke is Out of Timeout
 						 */
 						iteratorTimeoutOfWaitDR.remove();
+						break;
 					}
 				}
 				if (!listWaitDROutOfTimeout.isEmpty()) {
