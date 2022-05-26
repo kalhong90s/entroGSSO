@@ -60,6 +60,7 @@ public class OrigInvokeProfile {
 	private int smsIncoming;
 	private ArrayList<EquinoxRawData> rawDatasOut = new ArrayList<EquinoxRawData>();
 	private ArrayList <String> msgIdList  = new ArrayList<String>();
+	private boolean					isBypassUSMP	= false;
 
 
 	public long getSubmitSmRequestTime() {
@@ -332,5 +333,13 @@ public class OrigInvokeProfile {
 
 	public void setMsgIdList(ArrayList<String> msgIdList) {
 		this.msgIdList = msgIdList;
+	}
+
+	public boolean isBypassUSMP() {
+		return isBypassUSMP;
+	}
+
+	public void setBypassUSMP(boolean bypassUSMP) {
+		isBypassUSMP = bypassUSMP;
 	}
 }

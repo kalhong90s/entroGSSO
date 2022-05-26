@@ -93,7 +93,7 @@ public class IDLE_SEND_OTP_REQ implements IAFSubState {
 			/** SERVICE IS BYPASS **/
 			if(Arrays.asList(GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.USMP_BY_PASS_CONFIG_SERVICE_LIST).toUpperCase())).contains(service)){
 				appInstance.getListInvokeProcessing().add(rawDataIncoming.getInvoke());
-
+				origInvokeProfile.setBypassUSMP(true);
 				/*** CODING QUIRY E01 OR FOUND ST DO SEND EMAIL OR SMS ***/
 				/* IF NOT FOUND SERVICE TEMPLATE DO QUIRY E01 */
 				if (mapE01dataofService == null || mapE01dataofService.size() <= 0) {
@@ -433,10 +433,12 @@ public class IDLE_SEND_OTP_REQ implements IAFSubState {
 
 			/** FOR SMS **/
 			if (otpChannel.equalsIgnoreCase(OTPChannel.SMS)) {
+				if(origInvokeProfile.isBypassUSMP()){
+					rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
 
-				rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
-						composeDebugLog));
-
+				}else {
+					rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+				}
 			}
 			/** FOR EMAIL **/
 			else if (otpChannel.equalsIgnoreCase(OTPChannel.EMAIL)) {
@@ -448,9 +450,12 @@ public class IDLE_SEND_OTP_REQ implements IAFSubState {
 			/** FOR ALL **/
 			else {
 
-				rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
-						composeDebugLog));
+				if(origInvokeProfile.isBypassUSMP()){
+					rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
 
+				}else {
+					rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+				}
 				rawDatasOutgoing.add(GssoConstructMessage.createEMAILReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
 						composeDebugLog));
 

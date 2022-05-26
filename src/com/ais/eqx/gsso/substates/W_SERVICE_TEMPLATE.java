@@ -604,8 +604,12 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 
 					/** FOR SMS **/
 					if (otpChannel.equalsIgnoreCase(OTPChannel.SMS)) {
-						rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
-								composeDebugLog));
+						if(origInvokeProfile.isBypassUSMP()){
+							rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+
+						}else {
+							rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+						}
 
 					}
 					/** FOR EMAIL **/
@@ -616,8 +620,12 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 					}
 					/** FOR ALL **/
 					else if(otpChannel.equalsIgnoreCase(OTPChannel.ALL)) {
-						rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
-								composeDebugLog));
+						if(origInvokeProfile.isBypassUSMP()){
+							rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+
+						}else {
+							rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+						}
 
 						rawDatasOutgoing.add(GssoConstructMessage.createEMAILReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
 								composeDebugLog));
@@ -648,8 +656,12 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 					
 					/** FOR SMS **/
 					if (isSms == true && isEmail == false) {
-						rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
-								composeDebugLog));
+						if(origInvokeProfile.isBypassUSMP()){
+							rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+
+						}else {
+							rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+						}
 
 					}
 					/** FOR EMAIL **/
@@ -659,9 +671,13 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 
 					}
 					/** FOR ALL **/
-					else if(isSms == true && isEmail == true) {
-						rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
-								composeDebugLog));
+					else if(isSms == true && isEmail) {
+						if(origInvokeProfile.isBypassUSMP()){
+							rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+
+						}else {
+							rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+						}
 
 						rawDatasOutgoing.add(GssoConstructMessage.createEMAILReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
 								composeDebugLog));
@@ -727,8 +743,12 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 							thisServiceTemplate.getSeedkey()));
 					
 					/** FOR SMS **/
-					rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
-							composeDebugLog));
+					if(origInvokeProfile.isBypassUSMP()){
+						rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+
+					}else {
+						rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+					}
 
 				}
 				else if (origInvokeProfile.getIncomingMessageType().equals(IncomingMessageType.WS_GENERATE_ONETIMEPW_SOAP.getMessageType())) {
@@ -744,8 +764,12 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 							thisServiceTemplate.getSeedkey()));
 					
 					/** FOR SMS **/
-					rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
-							composeDebugLog));
+					if(origInvokeProfile.isBypassUSMP()){
+						rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+
+					}else {
+						rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+					}
 
 				}
 				
@@ -810,8 +834,12 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 					/** FOR SMS **/
 					if (otpChannel.equalsIgnoreCase(OTPChannel.SMS)) {
 
-						rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
-								composeDebugLog));
+						if(origInvokeProfile.isBypassUSMP()){
+							rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+
+						}else {
+							rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+						}
 
 					}
 					/** FOR EMAIL **/
@@ -823,9 +851,13 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 					}
 					/** FOR ALL **/
 					else {
-						
-						rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
-								composeDebugLog));
+
+						if(origInvokeProfile.isBypassUSMP()){
+							rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+
+						}else {
+							rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+						}
 
 						rawDatasOutgoing.add(GssoConstructMessage.createEMAILReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
 								composeDebugLog));

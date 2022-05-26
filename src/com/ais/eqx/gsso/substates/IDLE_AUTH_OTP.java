@@ -301,9 +301,12 @@ public class IDLE_AUTH_OTP implements IAFSubState {
 		/** FOR SMS **/
 		if (otpChannel.equalsIgnoreCase(OTPChannel.SMS)) {
 
-			rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
-					composeDebugLog));
+			if(origInvokeProfile.isBypassUSMP()){
+				rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
 
+			}else {
+				rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+			}
 		}
 		/** FOR EMAIL **/
 		else if (otpChannel.equalsIgnoreCase(OTPChannel.EMAIL)) {
@@ -315,8 +318,12 @@ public class IDLE_AUTH_OTP implements IAFSubState {
 		/** FOR ALL **/
 		else {
 
-			rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,
-					composeDebugLog));
+			if(origInvokeProfile.isBypassUSMP()){
+				rawDatasOutgoing.addAll(GssoConstructMessage.createSMSReqMessageV2(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+
+			}else {
+				rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
+			}
 
 			rawDatasOutgoing.add(GssoConstructMessage.createEMAILReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
 					composeDebugLog));
