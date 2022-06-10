@@ -108,7 +108,7 @@
         <MSISDN_Digit_Length value="9" /><!-- mandatory -->
         <!-- Sms RETRY_REJECT_LIMIT -->
         <Sms-Retries value="1" /><!-- mandatory -->
-        <!-- Email RETRY_REJECT_LIMIT -->
+        <!-- Email RETRY_REJECT_LIMIT -->โ
         <Email-Retries value="2" /><!-- mandatory -->
         <!-- PostpaidCosLists -->
         <PostpaidCosLists value="600001,31,41,51,52" /><!-- mandatory -->
@@ -169,8 +169,8 @@
         <rPCEF-Refund-URL value="/rpcef/v1/refund-management" />
         <Maximum-Hack-Time value="3" />
         <!-- Easy app connect Gsso 3/3/2022 -->
-        <USMP-By-Pass-Config-Service-List value="myChannel,myAIS,robot,GOMO,codapay,GSSO" />
-        <Long-SMPP-GSMNetworkSpecificFeatures value="UDHIIndicator " />
+        <USMP-By-Pass-Config-Service-List value="myChannel,myAIS,robot,GOMO,codapay,serviceByPass" />
+        <Long-SMPP-GSMNetworkSpecificFeatures value="UDHIIndicator" />
         <Max-Sms-Body-length value="140" />
 
 

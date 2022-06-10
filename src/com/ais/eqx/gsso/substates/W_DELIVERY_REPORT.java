@@ -64,6 +64,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 	private APPInstance					appInstance;
 	private DeliveryReportRequest		deliveryReportReq;
 	private ArrayList<EquinoxRawData>	rawDatasOut;
+	private ArrayList<EquinoxRawData>	rawDatasOutRefund = new ArrayList<EquinoxRawData>();
 	private String						nextState;
 	private String						origInvoke;
 	private EquinoxRawData				rawDataInput;
@@ -120,7 +121,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 	private String						sessionId;
 	private String						refId;
-
+	private boolean 					completely					= false;
 	private ArrayList<String>			enableCommandsToRefund		= new ArrayList<String>();
 
 	@Override
@@ -144,7 +145,8 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 				e.printStackTrace();
 			}
 
-			if (this.appInstance.getMapTimeoutOfWaitDR().isEmpty()) { // .size()
+			if (this.appInstance.getMapTimeoutOfWaitDR().isEmpty()) {
+				// .size()
 																		// <= 0
 
 				// this.deliveryReportReq = (DeliveryReportRequest)
@@ -603,15 +605,27 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 							this.ec02Instance.incrementsStat(Statistic.GSSO_RECEIVED_SMPPGW_DELIVERYREPORT_REQUEST.getStatistic());
 
 							this.mapDetails.setNoFlow();
+							if(origInvokeProfile.getRawDatasOutStateDr().size() ==0 && completely) {
+								this.origInvokeProfile.getRawDatasOutStateDr().add(new DeliveryReportRes(rawDataInput).toRawDatas(drId));
+							}else {
+								if(completely){
+									this.origInvokeProfile.getRawDatasOutStateDr().add(new DeliveryReportRes(rawDataInput).toRawDatas(drId));
 
-							this.rawDatasOut.add(new DeliveryReportRes(rawDataInput).toRawDatas(drId));
+								}else {
+									this.rawDatasOut.add(new DeliveryReportRes(rawDataInput).toRawDatas(drId));
+								}
+							}
 
 							appInstance.getMapOrigInvokeEventDetailOutput().put(this.rawDataInput.getInvoke(), event);
 
 							this.ec02Instance
 									.incrementsStat(Statistic.GSSO_RETURN_SMPPGW_DELIVERYREPORT_RESPONSE_ERROR.getStatistic());
+							if(origInvokeProfile.getRawDatasOutStateDr().size() ==0) {
+								errorCase();
+							}else {
+								isWriteSummary = true;
 
-							errorCase();
+							}
 
 							if (ConfigureTool.isWriteLog(ConfigName.DEBUG_LOG_ENABLED)) {
 								this.composeDebugLog
@@ -879,6 +893,10 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 		else if (RetNumber.TIMEOUT.equals(equinoxRawData.getRet())) {
 			this.origInvokeProfile = this.appInstance.getMapOrigProfile().get(origInvoke);
 
+			origInvokeProfile.setDrIncoming(origInvokeProfile.getDrIncoming()+1);
+			completely = origInvokeProfile.getDrIncoming()==origInvokeProfile.getSmsOutgoing();
+			Log.d("###########  Count Dr IncommingMsg :"+origInvokeProfile.getDrIncoming()+"/"+origInvokeProfile.getSmsOutgoing()+" ########### ");
+
 			this.messageId = origInvokeProfile.getSmMessageId();
 
 			this.destNodeResultDescription = LogDestNodeResultDesc.CONNECTION_TIMEOUT.getLogDestNodeResultDesc();
@@ -1009,26 +1027,34 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 			submitSmRespTime = origInvokeProfile.getSubmitSmRespTime();
 			serviceKey = origInvokeProfile.getServiceKey();
 
-			Iterator<Entry<String, TimeoutCalculator>> iteratorTimeOutDR = this.appInstance.getMapTimeoutOfWaitDR().entrySet()
-					.iterator();
-
-			while (iteratorTimeOutDR.hasNext()) {
-				Entry<String, TimeoutCalculator> entryTimeOutDR = (Entry<String, TimeoutCalculator>) iteratorTimeOutDR.next();
-
-				String invokeTimeoutDR = InvokeFilter.getOriginInvoke(entryTimeOutDR.getKey());
-				if (origInvoke.equals(invokeTimeoutDR)) {
-					iteratorTimeOutDR.remove();
-					break;
-				}
-
+//			Iterator<Entry<String, TimeoutCalculator>> iteratorTimeOutDR = this.appInstance.getMapTimeoutOfWaitDR().entrySet()
+//					.iterator();
+//
+//			while (iteratorTimeOutDR.hasNext()) {
+//				Entry<String, TimeoutCalculator> entryTimeOutDR = (Entry<String, TimeoutCalculator>) iteratorTimeOutDR.next();
+//
+//				String invokeTimeoutDR = InvokeFilter.getOriginInvoke(entryTimeOutDR.getKey());
+//				if (origInvoke.equals(invokeTimeoutDR)) {
+//					iteratorTimeOutDR.remove();
+//					break;
+//				}
+//
+//			}
+			if(origInvokeProfile.getRawDatasOutStateDr().size()==0){
+				errorCaseTimeout();
+			}else {
+				isWriteSummary = true;
 			}
-			errorCaseTimeout();
 		}
 
 		/* SAVE LOG */
 		deliverySaveLog();
 
-		return this.rawDatasOut;
+		if(completely && null != origInvokeProfile && origInvokeProfile.getRawDatasOutStateDr().size()>0){
+			return origInvokeProfile.getRawDatasOutStateDr();
+		}else {
+			return this.rawDatasOut;
+		}
 	}
 
 	public static String getCurrentTimeStamp() {
@@ -1078,16 +1104,15 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 	private boolean compareMessageId() {
 		boolean foundMessageId = false;
-
-		Iterator<Entry<String, OrigInvokeProfile>> iterator = this.appInstance.getMapOrigProfile().entrySet().iterator();
-		while (iterator.hasNext()) {
-			Entry<String, OrigInvokeProfile> entry = (Entry<String, OrigInvokeProfile>) iterator.next();
-
+		Log.d("DeliveryReport Id :"+drId);
+		for (Entry<String, OrigInvokeProfile> entry : this.appInstance.getMapOrigProfile().entrySet()) {
 			if (entry.getValue().getMsgIdList().contains(drId)) {
-
+				entry.getValue().getMsgIdList().remove(drId);
 				this.messageId = drId;
-
 				this.origInvoke = entry.getKey();
+				entry.getValue().setDrIncoming(entry.getValue().getDrIncoming() + 1);
+				completely = entry.getValue().getDrIncoming() == entry.getValue().getSmsOutgoing();
+				Log.d("###########  Count DR IncommingMsg :" + entry.getValue().getDrIncoming() + "/" + entry.getValue().getSmsOutgoing() + " ########### ");
 
 				Iterator<Entry<String, TimeoutCalculator>> iteratorTimeOutDR = this.appInstance.getMapTimeoutOfWaitDR().entrySet()
 						.iterator();
@@ -1104,16 +1129,11 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 					}
 				}
 
-				foundMessageId = true;
-				break;
-			}
-			else {
-
-				foundMessageId = false;
+				return   true;
 
 			}
 		}
-		return foundMessageId;
+		return false;
 	}
 
 	private void normalCaseSuccess() {
@@ -1122,7 +1142,15 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 		if (drId == null) {
 			drId = "";
 		}
-		this.rawDatasOut.add(new DeliveryReportRes(rawDataInput).toRawDatas(drId));
+		if(origInvokeProfile.getRawDatasOutStateDr().size()==0 ){
+			this.rawDatasOut.add(new DeliveryReportRes(rawDataInput).toRawDatas(drId));
+		}else {
+			if(completely){
+				this.origInvokeProfile.getRawDatasOutStateDr().add(new DeliveryReportRes(rawDataInput).toRawDatas(drId));
+			}else {
+				this.rawDatasOut.add(new DeliveryReportRes(rawDataInput).toRawDatas(drId));
+			}
+		}
 
 		this.ec02Instance.incrementsStat(Statistic.GSSO_RETURN_SMPPGW_DELIVERYREPORT_RESPONSE_SUCCESS.getStatistic());
 
@@ -1132,269 +1160,261 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 		appInstance.getMapOrigInvokeEventDetailOutput().put(this.rawDataInput.getInvoke(), event);
 
-		if (this.isWaitDREnable == true) {
+		if(origInvokeProfile.getRawDatasOutStateDr().size()==0) {
+			if (this.isWaitDREnable) {
 
-			if (OTPChannel.SMS.equalsIgnoreCase(otpChannel)) {
+				if (OTPChannel.SMS.equalsIgnoreCase(otpChannel)) {
 
-				GssoDataManagement.setTimeoutOfTransaction(appInstance, origInvoke);
+					GssoDataManagement.setTimeoutOfTransaction(appInstance, origInvoke);
 
-				if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
+					if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
 
-					this.rawDatasOut.add(new SubmitSMJsonFormatRes(this.rawDataOrig, JsonResultCode.SUCCESS.getCode(),
-							JsonResultCode.SUCCESS.getDescription(), isSuccessTrue).toRawDatas(appInstance));
+						if (completely)
+							this.rawDatasOut.add(new SubmitSMJsonFormatRes(this.rawDataOrig, JsonResultCode.SUCCESS.getCode(),
+									JsonResultCode.SUCCESS.getDescription(), isSuccessTrue).toRawDatas(appInstance));
 
-					this.code = JsonResultCode.SUCCESS.getCode();
-					this.description = JsonResultCode.SUCCESS.getDescription();
+						this.code = JsonResultCode.SUCCESS.getCode();
+						this.description = JsonResultCode.SUCCESS.getDescription();
 
+					} else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
+
+						if (completely)
+							this.rawDatasOut.add(new SubmitSMXMLFormatRes(this.rawDataOrig, SoapResultCode.SUCCESS.getCode(),
+									SoapResultCode.SUCCESS.getDescription(), isSuccessTrue).toRawDatas(appInstance));
+
+						this.code = SoapResultCode.SUCCESS.getCode();
+						this.description = SoapResultCode.SUCCESS.getDescription();
+					}
+
+					this.nextState = SubStates.END.toString();
+					if (completely) raiseStatoutSUCCESS();
+
+					/* REMOVE PROFILE */
+					if (completely) GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
+					isWriteSummary = true;
+
+				} else if (OTPChannel.ALL.equalsIgnoreCase(otpChannel)) {
+					// DR Success SMS Success Email remain
+					if (isEmailDone == null) {
+
+						this.nextState = SubStates.W_SEND_EMAIL.toString();
+
+						this.appInstance.getMapOrigProfile().get(origInvoke).getMapSentOTPResult().put(SentOTPResult.IS_DR,
+								SentOTPResult.SUCCESS);
+						if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
+
+							this.code = JsonResultCode.SUCCESS.getCode();
+							this.description = JsonResultCode.SUCCESS.getDescription();
+
+						} else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
+
+							this.code = SoapResultCode.SUCCESS.getCode();
+							this.description = SoapResultCode.SUCCESS.getDescription();
+						}
+					}
+					// DR Success SMS Success Email ERROR
+					else if (SentOTPResult.ERROR.equalsIgnoreCase(isEmailDone)) {
+
+						GssoDataManagement.setTimeoutOfTransaction(appInstance, origInvoke);
+
+						if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
+
+							if (completely) this.rawDatasOut
+									.add(new SubmitSMJsonFormatRes(this.rawDataOrig, JsonResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getCode(),
+											JsonResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getDescription(), isSuccessTrue)
+											.toRawDatas(appInstance));
+
+							this.code = JsonResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getCode();
+							this.description = JsonResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getDescription();
+
+						} else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
+
+							if (completely) this.rawDatasOut
+									.add(new SubmitSMXMLFormatRes(this.rawDataOrig, SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getCode(),
+											SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getDescription(), isSuccessTrue)
+											.toRawDatas(appInstance));
+
+							this.code = SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getCode();
+							this.description = SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getDescription();
+
+						}
+
+						if (completely) raiseStatoutSUCCESS();
+
+						this.nextState = SubStates.END.toString();
+
+						/* REMOVE PROFILE */
+						if (completely) GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
+						isWriteSummary = true;
+
+					}
+					// DR Success SMS Success Email Timeout
+					else if (SentOTPResult.TIMEOUT.equalsIgnoreCase(isEmailDone)) {
+
+						GssoDataManagement.setTimeoutOfTransaction(appInstance, origInvoke);
+
+						if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
+
+							if (completely) this.rawDatasOut.add(
+									new SubmitSMJsonFormatRes(this.rawDataOrig, JsonResultCode.SEND_SMS_SUCCESS_EMAIL_TIMEOUT.getCode(),
+											JsonResultCode.SEND_SMS_SUCCESS_EMAIL_TIMEOUT.getDescription(), isSuccessTrue)
+											.toRawDatas(appInstance));
+
+							this.code = JsonResultCode.SEND_SMS_SUCCESS_EMAIL_TIMEOUT.getCode();
+							this.description = JsonResultCode.SEND_SMS_SUCCESS_EMAIL_TIMEOUT.getDescription();
+
+						} else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
+
+							if (completely) this.rawDatasOut
+									.add(new SubmitSMXMLFormatRes(this.rawDataOrig, SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getCode(),
+											SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getDescription(), isSuccessTrue)
+											.toRawDatas(appInstance));
+
+							this.code = SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getCode();
+							this.description = SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getDescription();
+
+						}
+
+						if (completely) raiseStatoutSUCCESS();
+
+						this.nextState = SubStates.END.toString();
+
+						/* REMOVE PROFILE */
+						if (completely) GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
+						isWriteSummary = true;
+
+					}
+					// DR Success SMS Success Email Success
+					else if (SentOTPResult.SUCCESS.equalsIgnoreCase(isEmailDone)) {
+
+						GssoDataManagement.setTimeoutOfTransaction(appInstance, origInvoke);
+
+						if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
+
+							if (completely)
+								this.rawDatasOut.add(new SubmitSMJsonFormatRes(this.rawDataOrig, JsonResultCode.SUCCESS.getCode(),
+										JsonResultCode.SUCCESS.getDescription(), isSuccessTrue).toRawDatas(appInstance));
+
+							this.code = JsonResultCode.SUCCESS.getCode();
+							this.description = JsonResultCode.SUCCESS.getDescription();
+						} else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
+
+							if (completely)
+								this.rawDatasOut.add(new SubmitSMXMLFormatRes(this.rawDataOrig, SoapResultCode.SUCCESS.getCode(),
+										SoapResultCode.SUCCESS.getDescription(), isSuccessTrue).toRawDatas(appInstance));
+
+							this.code = SoapResultCode.SUCCESS.getCode();
+							this.description = SoapResultCode.SUCCESS.getDescription();
+
+						}
+
+						if (completely) raiseStatoutSUCCESS();
+
+						this.nextState = SubStates.END.toString();
+
+						/* REMOVE PROFILE */
+						if (completely) GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
+						isWriteSummary = true;
+
+					}
 				}
-				else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
+			} else {
 
-					this.rawDatasOut.add(new SubmitSMXMLFormatRes(this.rawDataOrig, SoapResultCode.SUCCESS.getCode(),
-							SoapResultCode.SUCCESS.getDescription(), isSuccessTrue).toRawDatas(appInstance));
+				if (OTPChannel.SMS.equalsIgnoreCase(otpChannel)) {
 
-					this.code = SoapResultCode.SUCCESS.getCode();
-					this.description = SoapResultCode.SUCCESS.getDescription();
+					if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
+
+						this.code = JsonResultCode.SUCCESS.getCode();
+						this.description = JsonResultCode.SUCCESS.getDescription();
+
+					} else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
+
+						this.code = SoapResultCode.SUCCESS.getCode();
+						this.description = SoapResultCode.SUCCESS.getDescription();
+					}
+
+				} else if (OTPChannel.ALL.equalsIgnoreCase(otpChannel)) {
+					// DR Success SMS Success Email remain
+					if (isEmailDone == null) {
+
+						if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
+
+							this.code = JsonResultCode.SUCCESS.getCode();
+							this.description = JsonResultCode.SUCCESS.getDescription();
+
+						} else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
+
+							this.code = SoapResultCode.SUCCESS.getCode();
+							this.description = SoapResultCode.SUCCESS.getDescription();
+						}
+					}
+					// DR Success SMS Success Email ERROR
+					else if (SentOTPResult.ERROR.equalsIgnoreCase(isEmailDone)) {
+
+						if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
+
+							this.code = JsonResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getCode();
+							this.description = JsonResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getDescription();
+
+						} else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
+
+							this.code = SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getCode();
+							this.description = SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getDescription();
+
+						}
+
+					}
+					// DR Success SMS Success Email Timeout
+					else if (SentOTPResult.TIMEOUT.equalsIgnoreCase(isEmailDone)) {
+
+						if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
+
+							this.code = JsonResultCode.SEND_SMS_SUCCESS_EMAIL_TIMEOUT.getCode();
+							this.description = JsonResultCode.SEND_SMS_SUCCESS_EMAIL_TIMEOUT.getDescription();
+
+						} else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
+
+							this.code = SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getCode();
+							this.description = SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getDescription();
+
+						}
+
+					}
+					// DR Success SMS Success Email Success
+					else if (SentOTPResult.SUCCESS.equalsIgnoreCase(isEmailDone)) {
+
+						if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
+
+							this.code = JsonResultCode.SUCCESS.getCode();
+							this.description = JsonResultCode.SUCCESS.getDescription();
+						} else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
+
+							this.code = SoapResultCode.SUCCESS.getCode();
+							this.description = SoapResultCode.SUCCESS.getDescription();
+
+						}
+
+					}
 				}
 
-				this.nextState = SubStates.END.toString();
-				raiseStatoutSUCCESS();
-
+				cmdName();
 				/* REMOVE PROFILE */
-				GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
+				if (completely) GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
 				isWriteSummary = true;
-
 			}
-			else if (OTPChannel.ALL.equalsIgnoreCase(otpChannel)) {
-				// DR Success SMS Success Email remain
-				if (isEmailDone == null) {
-
-					this.nextState = SubStates.W_SEND_EMAIL.toString();
-
-					this.appInstance.getMapOrigProfile().get(origInvoke).getMapSentOTPResult().put(SentOTPResult.IS_DR,
-							SentOTPResult.SUCCESS);
-					if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
-
-						this.code = JsonResultCode.SUCCESS.getCode();
-						this.description = JsonResultCode.SUCCESS.getDescription();
-
-					}
-					else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
-
-						this.code = SoapResultCode.SUCCESS.getCode();
-						this.description = SoapResultCode.SUCCESS.getDescription();
-					}
-				}
-				// DR Success SMS Success Email ERROR
-				else if (SentOTPResult.ERROR.equalsIgnoreCase(isEmailDone)) {
-
-					GssoDataManagement.setTimeoutOfTransaction(appInstance, origInvoke);
-
-					if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
-
-						this.rawDatasOut
-								.add(new SubmitSMJsonFormatRes(this.rawDataOrig, JsonResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getCode(),
-										JsonResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getDescription(), isSuccessTrue)
-												.toRawDatas(appInstance));
-
-						this.code = JsonResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getCode();
-						this.description = JsonResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getDescription();
-
-					}
-					else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
-
-						this.rawDatasOut
-								.add(new SubmitSMXMLFormatRes(this.rawDataOrig, SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getCode(),
-										SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getDescription(), isSuccessTrue)
-												.toRawDatas(appInstance));
-
-						this.code = SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getCode();
-						this.description = SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getDescription();
-
-					}
-
-					raiseStatoutSUCCESS();
-
-					this.nextState = SubStates.END.toString();
-
-					/* REMOVE PROFILE */
-					GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
-					isWriteSummary = true;
-
-				}
-				// DR Success SMS Success Email Timeout
-				else if (SentOTPResult.TIMEOUT.equalsIgnoreCase(isEmailDone)) {
-
-					GssoDataManagement.setTimeoutOfTransaction(appInstance, origInvoke);
-
-					if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
-
-						this.rawDatasOut.add(
-								new SubmitSMJsonFormatRes(this.rawDataOrig, JsonResultCode.SEND_SMS_SUCCESS_EMAIL_TIMEOUT.getCode(),
-										JsonResultCode.SEND_SMS_SUCCESS_EMAIL_TIMEOUT.getDescription(), isSuccessTrue)
-												.toRawDatas(appInstance));
-
-						this.code = JsonResultCode.SEND_SMS_SUCCESS_EMAIL_TIMEOUT.getCode();
-						this.description = JsonResultCode.SEND_SMS_SUCCESS_EMAIL_TIMEOUT.getDescription();
-
-					}
-					else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
-
-						this.rawDatasOut
-								.add(new SubmitSMXMLFormatRes(this.rawDataOrig, SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getCode(),
-										SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getDescription(), isSuccessTrue)
-												.toRawDatas(appInstance));
-
-						this.code = SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getCode();
-						this.description = SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getDescription();
-
-					}
-
-					raiseStatoutSUCCESS();
-
-					this.nextState = SubStates.END.toString();
-
-					/* REMOVE PROFILE */
-					GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
-					isWriteSummary = true;
-
-				}
-				// DR Success SMS Success Email Success
-				else if (SentOTPResult.SUCCESS.equalsIgnoreCase(isEmailDone)) {
-
-					GssoDataManagement.setTimeoutOfTransaction(appInstance, origInvoke);
-
-					if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
-
-						this.rawDatasOut.add(new SubmitSMJsonFormatRes(this.rawDataOrig, JsonResultCode.SUCCESS.getCode(),
-								JsonResultCode.SUCCESS.getDescription(), isSuccessTrue).toRawDatas(appInstance));
-
-						this.code = JsonResultCode.SUCCESS.getCode();
-						this.description = JsonResultCode.SUCCESS.getDescription();
-					}
-					else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
-
-						this.rawDatasOut.add(new SubmitSMXMLFormatRes(this.rawDataOrig, SoapResultCode.SUCCESS.getCode(),
-								SoapResultCode.SUCCESS.getDescription(), isSuccessTrue).toRawDatas(appInstance));
-
-						this.code = SoapResultCode.SUCCESS.getCode();
-						this.description = SoapResultCode.SUCCESS.getDescription();
-
-					}
-
-					raiseStatoutSUCCESS();
-
-					this.nextState = SubStates.END.toString();
-
-					/* REMOVE PROFILE */
-					GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
-					isWriteSummary = true;
-
-				}
-			}
-		}
-
-		else {
-
-			if (OTPChannel.SMS.equalsIgnoreCase(otpChannel)) {
-
-				if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
-
-					this.code = JsonResultCode.SUCCESS.getCode();
-					this.description = JsonResultCode.SUCCESS.getDescription();
-
-				}
-				else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
-
-					this.code = SoapResultCode.SUCCESS.getCode();
-					this.description = SoapResultCode.SUCCESS.getDescription();
-				}
-
-			}
-			else if (OTPChannel.ALL.equalsIgnoreCase(otpChannel)) {
-				// DR Success SMS Success Email remain
-				if (isEmailDone == null) {
-
-					if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
-
-						this.code = JsonResultCode.SUCCESS.getCode();
-						this.description = JsonResultCode.SUCCESS.getDescription();
-
-					}
-					else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
-
-						this.code = SoapResultCode.SUCCESS.getCode();
-						this.description = SoapResultCode.SUCCESS.getDescription();
-					}
-				}
-				// DR Success SMS Success Email ERROR
-				else if (SentOTPResult.ERROR.equalsIgnoreCase(isEmailDone)) {
-
-					if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
-
-						this.code = JsonResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getCode();
-						this.description = JsonResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getDescription();
-
-					}
-					else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
-
-						this.code = SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getCode();
-						this.description = SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getDescription();
-
-					}
-
-				}
-				// DR Success SMS Success Email Timeout
-				else if (SentOTPResult.TIMEOUT.equalsIgnoreCase(isEmailDone)) {
-
-					if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
-
-						this.code = JsonResultCode.SEND_SMS_SUCCESS_EMAIL_TIMEOUT.getCode();
-						this.description = JsonResultCode.SEND_SMS_SUCCESS_EMAIL_TIMEOUT.getDescription();
-
-					}
-					else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
-
-						this.code = SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getCode();
-						this.description = SoapResultCode.SEND_SMS_SUCCESS_EMAIL_FAIL.getDescription();
-
-					}
-
-				}
-				// DR Success SMS Success Email Success
-				else if (SentOTPResult.SUCCESS.equalsIgnoreCase(isEmailDone)) {
-
-					if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
-
-						this.code = JsonResultCode.SUCCESS.getCode();
-						this.description = JsonResultCode.SUCCESS.getDescription();
-					}
-					else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
-
-						this.code = SoapResultCode.SUCCESS.getCode();
-						this.description = SoapResultCode.SUCCESS.getDescription();
-
-					}
-
-				}
-			}
-
-			cmdName();
-			/* REMOVE PROFILE */
-			GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
-			isWriteSummary = true;
 		}
 	}
 
 	private void errorCaseTimeout() {
 
-		if (this.isWaitDREnable == true) {
+		if (this.isWaitDREnable) {
 
 			if (OTPChannel.SMS.equalsIgnoreCase(otpChannel)) {
 				// DR Timeout SMS SUCCESS
 
 				if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
 
-					this.rawDatasOut.add(new SubmitSMJsonFormatRes(this.rawDataOrig, JsonResultCode.SEND_SMS_TIMEOUT.getCode(),
+					origInvokeProfile.getRawDatasOutStateDr().add(new SubmitSMJsonFormatRes(this.rawDataOrig, JsonResultCode.SEND_SMS_TIMEOUT.getCode(),
 							JsonResultCode.SEND_SMS_TIMEOUT.getDescription(), isSuccessFalse).toRawDatas(appInstance));
 
 					this.code = JsonResultCode.SEND_SMS_TIMEOUT.getCode();
@@ -1403,7 +1423,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 				}
 				else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
 
-					this.rawDatasOut.add(new SubmitSMXMLFormatRes(this.rawDataOrig, SoapResultCode.SEND_SMS_FAIL.getCode(),
+					origInvokeProfile.getRawDatasOutStateDr().add(new SubmitSMXMLFormatRes(this.rawDataOrig, SoapResultCode.SEND_SMS_FAIL.getCode(),
 							SoapResultCode.SEND_SMS_FAIL.getDescription(), isSuccessFalse).toRawDatas(appInstance));
 
 					this.code = SoapResultCode.SEND_SMS_FAIL.getCode();
@@ -1415,7 +1435,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 				/* Refund */
 				if (this.isRefundFlag && enableCommandsToRefund.contains(this.appInstance.getOrigCommand())) {
-					this.rawDatasOut.add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance, this.sessionId,
+					origInvokeProfile.getRawDatasOutStateDr().add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance, this.sessionId,
 							this.refId, this.msisdn, composeDebugLog));
 					this.nextState = SubStates.W_REFUND.toString();
 					isWriteSummary = true;
@@ -1424,7 +1444,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 					this.nextState = SubStates.END.toString();
 
 					/* REMOVE PROFILE */
-					GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
+					if(completely)GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
 					isWriteSummary = true;
 				}
 
@@ -1453,7 +1473,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 					/* Refund */
 					if (this.isRefundFlag && enableCommandsToRefund.contains(this.appInstance.getOrigCommand())) {
-						this.rawDatasOut.add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance, this.sessionId,
+						origInvokeProfile.getRawDatasOutStateDr().add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance, this.sessionId,
 								this.refId, this.msisdn, composeDebugLog));
 						this.nextState = SubStates.W_REFUND.toString();
 						isWriteSummary = true;
@@ -1465,10 +1485,8 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 					if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
 
-						this.rawDatasOut
-								.add(new SubmitSMJsonFormatRes(this.rawDataOrig, JsonResultCode.SEND_SMS_TIMEOUT_EMAIL_FAIL.getCode(),
-										JsonResultCode.SEND_SMS_TIMEOUT_EMAIL_FAIL.getDescription(), isSuccessFalse)
-												.toRawDatas(appInstance));
+						origInvokeProfile.getRawDatasOutStateDr().add(new SubmitSMJsonFormatRes(this.rawDataOrig, JsonResultCode.SEND_SMS_TIMEOUT_EMAIL_FAIL.getCode(),
+										JsonResultCode.SEND_SMS_TIMEOUT_EMAIL_FAIL.getDescription(), isSuccessFalse).toRawDatas(appInstance));
 
 						this.code = JsonResultCode.SEND_SMS_TIMEOUT_EMAIL_FAIL.getCode();
 						this.description = JsonResultCode.SEND_SMS_TIMEOUT_EMAIL_FAIL.getDescription();
@@ -1476,7 +1494,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 					}
 					else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
 
-						this.rawDatasOut
+						origInvokeProfile.getRawDatasOutStateDr()
 								.add(new SubmitSMXMLFormatRes(this.rawDataOrig, SoapResultCode.SEND_SMS_FAIL_EMAIL_FAIL.getCode(),
 										SoapResultCode.SEND_SMS_FAIL_EMAIL_FAIL.getDescription(), isSuccessFalse)
 												.toRawDatas(appInstance));
@@ -1490,7 +1508,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 					/* Refund */
 					if (this.isRefundFlag && enableCommandsToRefund.contains(this.appInstance.getOrigCommand())) {
-						this.rawDatasOut.add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance,
+						origInvokeProfile.getRawDatasOutStateDr().add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance,
 								this.sessionId, this.refId, this.msisdn, composeDebugLog));
 						this.nextState = SubStates.W_REFUND.toString();
 						isWriteSummary = true;
@@ -1499,7 +1517,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 						this.nextState = SubStates.END.toString();
 
 						/* REMOVE PROFILE */
-						GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
+						if(completely)GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
 						isWriteSummary = true;
 					}
 
@@ -1509,7 +1527,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 					if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
 
-						this.rawDatasOut.add(
+						this.origInvokeProfile.getRawDatasOutStateDr().add(
 								new SubmitSMJsonFormatRes(this.rawDataOrig, JsonResultCode.SEND_SMS_TIMEOUT_EMAIL_TIMEOUT.getCode(),
 										JsonResultCode.SEND_SMS_TIMEOUT_EMAIL_TIMEOUT.getDescription(), isSuccessFalse)
 												.toRawDatas(appInstance));
@@ -1520,7 +1538,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 					}
 					else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
 
-						this.rawDatasOut
+						this.origInvokeProfile.getRawDatasOutStateDr()
 								.add(new SubmitSMXMLFormatRes(this.rawDataOrig, SoapResultCode.SEND_SMS_FAIL_EMAIL_FAIL.getCode(),
 										SoapResultCode.SEND_SMS_FAIL_EMAIL_FAIL.getDescription(), isSuccessFalse)
 												.toRawDatas(appInstance));
@@ -1534,7 +1552,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 					/* Refund */
 					if (this.isRefundFlag && enableCommandsToRefund.contains(this.appInstance.getOrigCommand())) {
-						this.rawDatasOut.add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance,
+						this.origInvokeProfile.getRawDatasOutStateDr().add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance,
 								this.sessionId, this.refId, this.msisdn, composeDebugLog));
 						this.nextState = SubStates.W_REFUND.toString();
 						isWriteSummary = true;
@@ -1543,7 +1561,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 						this.nextState = SubStates.END.toString();
 
 						/* REMOVE PROFILE */
-						GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
+						if(completely)GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
 						isWriteSummary = true;
 					}
 
@@ -1554,7 +1572,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 					if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
 
-						this.rawDatasOut.add(
+						this.origInvokeProfile.getRawDatasOutStateDr().add(
 								new SubmitSMJsonFormatRes(this.rawDataOrig, JsonResultCode.SEND_SMS_TIMEOUT_EMAIL_SUCCESS.getCode(),
 										JsonResultCode.SEND_SMS_TIMEOUT_EMAIL_SUCCESS.getDescription(), isSuccessTrue)
 												.toRawDatas(appInstance));
@@ -1565,7 +1583,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 					}
 					else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
 
-						this.rawDatasOut
+						this.origInvokeProfile.getRawDatasOutStateDr()
 								.add(new SubmitSMXMLFormatRes(this.rawDataOrig, SoapResultCode.SEND_SMS_FAIL_EMAIL_SUCCESS.getCode(),
 										SoapResultCode.SEND_SMS_FAIL_EMAIL_SUCCESS.getDescription(), isSuccessTrue)
 												.toRawDatas(appInstance));
@@ -1579,7 +1597,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 					/* Refund */
 					if (this.isRefundFlag && enableCommandsToRefund.contains(this.appInstance.getOrigCommand())) {
-						this.rawDatasOut.add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance,
+						this.origInvokeProfile.getRawDatasOutStateDr().add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance,
 								this.sessionId, this.refId, this.msisdn, composeDebugLog));
 						this.nextState = SubStates.W_REFUND.toString();
 						isWriteSummary = true;
@@ -1588,13 +1606,12 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 						this.nextState = SubStates.END.toString();
 
 						/* REMOVE PROFILE */
-						GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
+						if(completely)GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
 						isWriteSummary = true;
 					}
 
 				}
 			}
-
 		}
 		else {
 
@@ -1673,9 +1690,10 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 			cmdName();
 			/* REMOVE PROFILE */
-			GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
+			if(completely)GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
 			isWriteSummary = true;
 		}
+
 	}
 
 	private void errorCase() {
@@ -1686,7 +1704,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 				// DR Timeout SMS SUCCESS
 				if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
 
-					this.rawDatasOut.add(new SubmitSMJsonFormatRes(this.rawDataOrig, JsonResultCode.SEND_SMS_FAIL.getCode(),
+					this.origInvokeProfile.getRawDatasOutStateDr().add(new SubmitSMJsonFormatRes(this.rawDataOrig, JsonResultCode.SEND_SMS_FAIL.getCode(),
 							JsonResultCode.SEND_SMS_FAIL.getDescription(), isSuccessFalse).toRawDatas(appInstance));
 
 					this.code = JsonResultCode.SEND_SMS_FAIL.getCode();
@@ -1695,7 +1713,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 				}
 				else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
 
-					this.rawDatasOut.add(new SubmitSMXMLFormatRes(this.rawDataOrig, SoapResultCode.SEND_SMS_FAIL.getCode(),
+					this.origInvokeProfile.getRawDatasOutStateDr().add(new SubmitSMXMLFormatRes(this.rawDataOrig, SoapResultCode.SEND_SMS_FAIL.getCode(),
 							SoapResultCode.SEND_SMS_FAIL.getDescription(), isSuccessFalse).toRawDatas(appInstance));
 
 					this.code = SoapResultCode.SEND_SMS_FAIL.getCode();
@@ -1706,7 +1724,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 				/* Refund */
 				if (this.isRefundFlag && enableCommandsToRefund.contains(this.appInstance.getOrigCommand())) {
-					this.rawDatasOut.add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance, this.sessionId,
+					this.origInvokeProfile.getRawDatasOutStateDr().add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance, this.sessionId,
 							this.refId, this.msisdn, composeDebugLog));
 					this.nextState = SubStates.W_REFUND.toString();
 					isWriteSummary = true;
@@ -1715,7 +1733,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 					this.nextState = SubStates.END.toString();
 
 					/* REMOVE PROFILE */
-					GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
+					if(completely)GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
 					isWriteSummary = true;
 				}
 			}
@@ -1743,7 +1761,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 					/* Refund */
 					if (this.isRefundFlag && enableCommandsToRefund.contains(this.appInstance.getOrigCommand())) {
-						this.rawDatasOut.add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance, this.sessionId,
+						this.origInvokeProfile.getRawDatasOutStateDr().add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance, this.sessionId,
 								this.refId, this.msisdn, composeDebugLog));
 						this.nextState = SubStates.W_REFUND.toString();
 						isWriteSummary = true;
@@ -1756,7 +1774,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 					if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
 
-						this.rawDatasOut
+						this.origInvokeProfile.getRawDatasOutStateDr()
 								.add(new SubmitSMJsonFormatRes(this.rawDataOrig, JsonResultCode.SEND_SMS_FAIL_EMAIL_FAIL.getCode(),
 										JsonResultCode.SEND_SMS_FAIL_EMAIL_FAIL.getDescription(), isSuccessFalse)
 												.toRawDatas(appInstance));
@@ -1767,7 +1785,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 					}
 					else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
 
-						this.rawDatasOut
+						this.origInvokeProfile.getRawDatasOutStateDr()
 								.add(new SubmitSMXMLFormatRes(this.rawDataOrig, SoapResultCode.SEND_SMS_FAIL_EMAIL_FAIL.getCode(),
 										SoapResultCode.SEND_SMS_FAIL_EMAIL_FAIL.getDescription(), isSuccessFalse)
 												.toRawDatas(appInstance));
@@ -1781,7 +1799,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 					/* Refund */
 					if (this.isRefundFlag && enableCommandsToRefund.contains(this.appInstance.getOrigCommand())) {
-						this.rawDatasOut.add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance, this.sessionId,
+						this.origInvokeProfile.getRawDatasOutStateDr().add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance, this.sessionId,
 								this.refId, this.msisdn, composeDebugLog));
 						this.nextState = SubStates.W_REFUND.toString();
 						isWriteSummary = true;
@@ -1790,7 +1808,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 						this.nextState = SubStates.END.toString();
 
 						/* REMOVE PROFILE */
-						GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
+						if(completely)GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
 						isWriteSummary = true;
 					}
 				}
@@ -1799,7 +1817,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 					if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
 
-						this.rawDatasOut
+						this.origInvokeProfile.getRawDatasOutStateDr()
 								.add(new SubmitSMJsonFormatRes(this.rawDataOrig, JsonResultCode.SEND_SMS_FAIL_EMAIL_TIMEOUT.getCode(),
 										JsonResultCode.SEND_SMS_FAIL_EMAIL_TIMEOUT.getDescription(), isSuccessFalse)
 												.toRawDatas(appInstance));
@@ -1810,7 +1828,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 					}
 					else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
 
-						this.rawDatasOut
+						this.origInvokeProfile.getRawDatasOutStateDr()
 								.add(new SubmitSMXMLFormatRes(this.rawDataOrig, SoapResultCode.SEND_SMS_FAIL_EMAIL_FAIL.getCode(),
 										SoapResultCode.SEND_SMS_FAIL_EMAIL_FAIL.getDescription(), isSuccessFalse)
 												.toRawDatas(appInstance));
@@ -1824,7 +1842,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 					/* Refund */
 					if (this.isRefundFlag && enableCommandsToRefund.contains(this.appInstance.getOrigCommand())) {
-						this.rawDatasOut.add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance, this.sessionId,
+						this.origInvokeProfile.getRawDatasOutStateDr().add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance, this.sessionId,
 								this.refId, this.msisdn, composeDebugLog));
 						this.nextState = SubStates.W_REFUND.toString();
 						isWriteSummary = true;
@@ -1833,7 +1851,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 						this.nextState = SubStates.END.toString();
 
 						/* REMOVE PROFILE */
-						GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
+						if(completely)GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
 						isWriteSummary = true;
 					}
 				}
@@ -1843,7 +1861,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 					if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
 
-						this.rawDatasOut
+						this.origInvokeProfile.getRawDatasOutStateDr()
 								.add(new SubmitSMJsonFormatRes(this.rawDataOrig, JsonResultCode.SEND_SMS_FAIL_EMAIL_SUCCESS.getCode(),
 										JsonResultCode.SEND_SMS_FAIL_EMAIL_SUCCESS.getDescription(), isSuccessTrue)
 												.toRawDatas(appInstance));
@@ -1854,7 +1872,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 					}
 					else if (GssoMessageType.SOAP.equalsIgnoreCase(messageType)) {
 
-						this.rawDatasOut
+						this.origInvokeProfile.getRawDatasOutStateDr()
 								.add(new SubmitSMXMLFormatRes(this.rawDataOrig, SoapResultCode.SEND_SMS_FAIL_EMAIL_SUCCESS.getCode(),
 										SoapResultCode.SEND_SMS_FAIL_EMAIL_SUCCESS.getDescription(), isSuccessTrue)
 												.toRawDatas(appInstance));
@@ -1863,10 +1881,11 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 						this.description = SoapResultCode.SEND_SMS_FAIL_EMAIL_SUCCESS.getDescription();
 
 					}
+					raiseStatoutSUCCESS();
 
 					/* Refund */
 					if (this.isRefundFlag && enableCommandsToRefund.contains(this.appInstance.getOrigCommand())) {
-						this.rawDatasOut.add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance, this.sessionId,
+						this.origInvokeProfile.getRawDatasOutStateDr().add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance, this.sessionId,
 								this.refId, this.msisdn, composeDebugLog));
 						this.nextState = SubStates.W_REFUND.toString();
 						isWriteSummary = true;
@@ -1875,7 +1894,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 						this.nextState = SubStates.END.toString();
 
 						/* REMOVE PROFILE */
-						GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
+						if(completely)GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
 						isWriteSummary = true;
 					}
 				}				
@@ -1899,7 +1918,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 
 				/* Refund */
 				if (this.isRefundFlag && enableCommandsToRefund.contains(this.appInstance.getOrigCommand())) {
-					this.rawDatasOut.add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance, this.sessionId,
+					this.origInvokeProfile.getRawDatasOutStateDr().add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance, this.sessionId,
 							this.refId, this.msisdn, composeDebugLog));
 					this.nextState = SubStates.W_REFUND.toString();
 					isWriteSummary = true;
@@ -1967,7 +1986,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 			/* Refund */
 			if (!(this.isRefundFlag && enableCommandsToRefund.contains(this.appInstance.getOrigCommand()))) {
 				/* REMOVE PROFILE */
-				GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
+				if(completely)GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
 			}
 			isWriteSummary = true;
 		}
@@ -2295,7 +2314,7 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 					deliveryReportLog.toString());
 		}
 
-		if (isWriteSummary == false) {
+		if (!isWriteSummary) {
 
 			if (!destNodeResultDescription.equals("null")) {
 

@@ -427,6 +427,7 @@ public class IDLE_WS_AUTH_OTP implements IAFSubState {
 				}else {
 					rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
 				}
+				origInvokeProfile.setSmsOutgoing(rawDatasOutgoing.size());
 
 			}
 			/** FOR EMAIL **/
@@ -445,6 +446,7 @@ public class IDLE_WS_AUTH_OTP implements IAFSubState {
 				}else {
 					rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
 				}
+				origInvokeProfile.setSmsOutgoing(rawDatasOutgoing.size());
 
 				rawDatasOutgoing.add(GssoConstructMessage.createEMAILReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
 						composeDebugLog));

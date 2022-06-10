@@ -142,9 +142,13 @@ public class GSSOHandler {
 
 		long outTime = System.currentTimeMillis();
 		this.appInstance.setTimeStampOutgoing(outTime);
-
+		EquinoxRawData toRemove = new EquinoxRawData();
 		/** SET OUT PUT **/
 		for (EquinoxRawData rawData : listRawDatasOutgoing) {
+			if(null == rawData.getTo() || "".equals(rawData.getTo().trim())){
+				toRemove = rawData;
+				continue;
+			}
 			/** CHANGE OUTGOING INVOKE **/
 			if (rawData.getType().toLowerCase().equals(EventAction.RESPONSE)) {
 
@@ -160,6 +164,8 @@ public class GSSOHandler {
 				appInstance.getMapInvokeByOutputTime().put(rawData.getInvoke(), outTime);
 			}
 		}
+		/// remove rawDataOutput is valid  (case both sms timeout and dr timeout)
+		listRawDatasOutgoing.remove(toRemove);
 
 		/** ADD NEW TIME E01 OUT **/
 		if (abstractAF.getEquinoxUtils().getDataBuffer().getE01Commands().size() != 0) {

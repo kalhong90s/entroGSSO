@@ -307,6 +307,8 @@ public class IDLE_AUTH_OTP implements IAFSubState {
 			}else {
 				rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
 			}
+			origInvokeProfile.setSmsOutgoing(rawDatasOutgoing.size());
+
 		}
 		/** FOR EMAIL **/
 		else if (otpChannel.equalsIgnoreCase(OTPChannel.EMAIL)) {
@@ -324,6 +326,7 @@ public class IDLE_AUTH_OTP implements IAFSubState {
 			}else {
 				rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
 			}
+			origInvokeProfile.setSmsOutgoing(rawDatasOutgoing.size());
 
 			rawDatasOutgoing.add(GssoConstructMessage.createEMAILReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
 					composeDebugLog));

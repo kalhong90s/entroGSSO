@@ -415,6 +415,7 @@ public class IDLE_WS_CREATE_OTP implements IAFSubState {
 			}else {
 				rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
 			}
+			origInvokeProfile.setSmsOutgoing(rawDatasOutgoing.size());
 
 
 			if (ConfigureTool.isWriteLog(ConfigName.DEBUG_LOG_ENABLED)) {

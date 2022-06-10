@@ -610,6 +610,8 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 						}else {
 							rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
 						}
+						origInvokeProfile.setSmsOutgoing(rawDatasOutgoing.size());
+
 
 					}
 					/** FOR EMAIL **/
@@ -626,6 +628,7 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 						}else {
 							rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
 						}
+						origInvokeProfile.setSmsOutgoing(rawDatasOutgoing.size());
 
 						rawDatasOutgoing.add(GssoConstructMessage.createEMAILReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
 								composeDebugLog));
@@ -662,6 +665,7 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 						}else {
 							rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
 						}
+						origInvokeProfile.setSmsOutgoing(rawDatasOutgoing.size());
 
 					}
 					/** FOR EMAIL **/
@@ -678,6 +682,7 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 						}else {
 							rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
 						}
+						origInvokeProfile.setSmsOutgoing(rawDatasOutgoing.size());
 
 						rawDatasOutgoing.add(GssoConstructMessage.createEMAILReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
 								composeDebugLog));
@@ -749,6 +754,7 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 					}else {
 						rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
 					}
+					origInvokeProfile.setSmsOutgoing(rawDatasOutgoing.size());
 
 				}
 				else if (origInvokeProfile.getIncomingMessageType().equals(IncomingMessageType.WS_GENERATE_ONETIMEPW_SOAP.getMessageType())) {
@@ -770,6 +776,8 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 					}else {
 						rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
 					}
+					origInvokeProfile.setSmsOutgoing(rawDatasOutgoing.size());
+
 
 				}
 				
@@ -840,6 +848,7 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 						}else {
 							rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
 						}
+						origInvokeProfile.setSmsOutgoing(rawDatasOutgoing.size());
 
 					}
 					/** FOR EMAIL **/
@@ -858,6 +867,7 @@ public class W_SERVICE_TEMPLATE implements IAFSubState {
 						}else {
 							rawDatasOutgoing.add(GssoConstructMessage.createSMSReqMessage(origInvoke, thisServiceTemplate, ec02Instance,composeDebugLog));
 						}
+						origInvokeProfile.setSmsOutgoing(rawDatasOutgoing.size());
 
 						rawDatasOutgoing.add(GssoConstructMessage.createEMAILReqMessage(origInvoke, thisServiceTemplate, ec02Instance,
 								composeDebugLog));

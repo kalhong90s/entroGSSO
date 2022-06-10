@@ -58,9 +58,12 @@ public class OrigInvokeProfile {
 
 	private int smsOutgoing ;
 	private int smsIncoming;
+	private int drIncoming;
+
 	private ArrayList<EquinoxRawData> rawDatasOut = new ArrayList<EquinoxRawData>();
 	private ArrayList <String> msgIdList  = new ArrayList<String>();
 	private boolean					isBypassUSMP	= false;
+	private ArrayList<EquinoxRawData> rawDatasOutStateDr = new ArrayList<EquinoxRawData>();
 
 
 	public long getSubmitSmRequestTime() {
@@ -319,6 +322,14 @@ public class OrigInvokeProfile {
 		this.smsIncoming = smsIncoming;
 	}
 
+	public int getDrIncoming() {
+		return drIncoming;
+	}
+
+	public void setDrIncoming(int drIncoming) {
+		this.drIncoming = drIncoming;
+	}
+
 	public ArrayList<EquinoxRawData> getRawDatasOut() {
 		return rawDatasOut;
 	}
@@ -341,5 +352,13 @@ public class OrigInvokeProfile {
 
 	public void setBypassUSMP(boolean bypassUSMP) {
 		isBypassUSMP = bypassUSMP;
+	}
+
+	public ArrayList<EquinoxRawData> getRawDatasOutStateDr() {
+		return rawDatasOutStateDr;
+	}
+
+	public void setRawDatasOutStateDr(ArrayList<EquinoxRawData> rawDatasOutStateDr) {
+		this.rawDatasOutStateDr = rawDatasOutStateDr;
 	}
 }

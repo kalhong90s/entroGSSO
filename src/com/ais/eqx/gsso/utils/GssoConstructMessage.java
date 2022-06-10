@@ -1167,7 +1167,6 @@ public class GssoConstructMessage {
 			}
 
 		}
-		origInvokeProfile.setSmsOutgoing(rawDataArrayList.size());
 		return rawDataArrayList;
 	}
 	public static String selectlanguage (String language ,String th,String en){
@@ -1613,13 +1612,17 @@ public class GssoConstructMessage {
 
 	public static ArrayList<String> splitSmsBody(String smsBody,String language){
 		ArrayList<String> listOfSms = new ArrayList<String>();
-
+		Log.d("smsBody before Hex:"+smsBody);
 		if (language.equals(GssoLanguage.THAI) ||language.equals(GssoLanguage.ALL) ) {
 			smsBody = GssoDataManagement.convertStringToHexNotPrefix(smsBody, true);
 		}
 		else {
 			smsBody = GssoDataManagement.convertStringToHexNotPrefix(smsBody, false);
 		}
+		Log.d("smsBody after Hex:"+smsBody);
+		Log.d("Real smsBody Length after Hex:"+smsBody.length());
+
+
 		int maxSms = ConfigureTool.getConfigureInteger(ConfigName.MAX_SMS_BODY)*2 <1?350:ConfigureTool.getConfigureInteger(ConfigName.MAX_SMS_BODY)*2;
 
 		if(smsBody.length()>maxSms) {
