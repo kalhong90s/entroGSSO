@@ -94,6 +94,7 @@ public class W_SEND_SMS implements IAFSubState {
 	private ArrayList<String> 			enableCommandsToRefund 		= new ArrayList<String>();
 	private boolean completely			= false;
 
+
 	// MAIN WAIT SMS RESPONSE
 	@Override
 	public ArrayList<EquinoxRawData> doActionSubState(AbstractAF abstractAF, EC02Instance ec02Instance, EquinoxRawData equinoxRawData) {
@@ -128,7 +129,7 @@ public class W_SEND_SMS implements IAFSubState {
 
 				// RECEIVING THE VALID SUBMITSM RESPONSE
 				if(completely){
-					if(rawDatasOut.size() == 0){
+					if(rawDatasOut.size() == 0 && !origInvokeProfile.isSmsError()){
 						normalCaseSuccess();
 					}else {
 						removeWaitDr();
@@ -763,7 +764,7 @@ public class W_SEND_SMS implements IAFSubState {
 
 			// E-MAIL REMAIN
 			if (isEmailDone == null) {
-
+				origInvokeProfile.setSmsError(true);
 				this.nextState = SubStates.W_SEND_EMAIL.toString();
 
 				if (GssoMessageType.JSON.equalsIgnoreCase(messageType)) {
@@ -1159,11 +1160,11 @@ public class W_SEND_SMS implements IAFSubState {
 		return null;
 	}
 	private void removeWaitDr() {
-
+		origInvokeProfile.getGssoOTPRequest().getSendOneTimePW().setWaitDR("false");
 		Iterator<Map.Entry<String, TimeoutCalculator>> iteratorTimeOutDR = this.appInstance.getMapTimeoutOfWaitDR().entrySet().iterator();
 
 		while (iteratorTimeOutDR.hasNext()) {
-			Map.Entry<String, TimeoutCalculator> entryTimeOutDR = (Map.Entry<String, TimeoutCalculator>) iteratorTimeOutDR.next();
+			Map.Entry<String, TimeoutCalculator> entryTimeOutDR = iteratorTimeOutDR.next();
 			String invokeTimeoutDR = InvokeFilter.getOriginInvoke(entryTimeOutDR.getKey());
 			if (origInvoke.equals(invokeTimeoutDR)) {
 				iteratorTimeOutDR.remove();

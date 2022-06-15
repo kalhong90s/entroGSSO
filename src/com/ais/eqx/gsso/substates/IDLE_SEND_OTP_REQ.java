@@ -96,7 +96,7 @@ public class IDLE_SEND_OTP_REQ implements IAFSubState {
 				origInvokeProfile.setBypassUSMP(true);
 				/*** CODING QUIRY E01 OR FOUND ST DO SEND EMAIL OR SMS ***/
 				/* IF NOT FOUND SERVICE TEMPLATE DO QUIRY E01 */
-				if (mapE01dataofService == null || mapE01dataofService.size() <= 0) {
+				if (mapE01dataofService.size() <= 0) {
 					if (gssoE01Datas == null || gssoE01Datas.getServiceTemplate() == null
 							|| gssoE01Datas.getServiceTemplate().size() <= 0) {
 						GssoConstructMessage.createMessageQuiryE01Template(ec02Instance, rawDataIncoming.getInvoke(), abstractAF,

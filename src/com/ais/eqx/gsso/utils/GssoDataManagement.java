@@ -625,10 +625,10 @@ public class GssoDataManagement {
 		sendOneTimePW.setWaitDR(chooseWaitDR(sendOneTimePW.getWaitDR(), thisServiceTemplate.getWaitDR()));
 
 		sendOneTimePW.setRefDigit(chooseRefDigit(sendOneTimePW.getRefDigit(), thisServiceTemplate.getRefDigit(),
-				GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.OTP_LENGTH))[0], typePatternCardinalNumbers));
+				GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.REF_LENGTH))[0], typePatternCardinalNumbers));
 
 		sendOneTimePW.setOtpDigit(chooseOtpDigit(sendOneTimePW.getOtpDigit(), thisServiceTemplate.getOtpDigit(),
-				GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.REF_LENGTH))[0], typePatternCardinalNumbers));
+				GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.OTP_LENGTH))[0], typePatternCardinalNumbers));
 
 	}
 	
@@ -643,10 +643,10 @@ public class GssoDataManagement {
 		sendWSOTPRequest.setWaitDR(chooseWaitDR(sendWSOTPRequest.getWaitDR(), thisServiceTemplate.getWaitDR()));
 
 		sendWSOTPRequest.setRefDigit(chooseRefDigit(sendWSOTPRequest.getRefDigit(), thisServiceTemplate.getRefDigit(),
-				GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.OTP_LENGTH))[0], typePatternCardinalNumbers));
+				GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.REF_LENGTH))[0], typePatternCardinalNumbers));
 
 		sendWSOTPRequest.setOtpDigit(chooseOtpDigit(sendWSOTPRequest.getOtpDigit(), thisServiceTemplate.getOtpDigit(),
-				GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.REF_LENGTH))[0], typePatternCardinalNumbers));
+				GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.OTP_LENGTH))[0], typePatternCardinalNumbers));
 
 	}
 	
@@ -748,31 +748,21 @@ public class GssoDataManagement {
 
 		/* FOUND 3 */
 		if (ec02LifeTimeoutMins != 0 && serviceTemplateLifeTimeoutMinInteger != 0 && incomingMessageLifeTimeoutMinInteger != 0) {
-			if (incomingMessageLifeTimeoutMinInteger > serviceTemplateLifeTimeoutMinInteger) {
-				realLifeTimeoutMins = serviceTemplateLifeTimeoutMinInteger;
-			}
-			else {
-				realLifeTimeoutMins = incomingMessageLifeTimeoutMinInteger;
-			}
+			realLifeTimeoutMins = Math.min(incomingMessageLifeTimeoutMinInteger, serviceTemplateLifeTimeoutMinInteger);
 		}
 
 		/* FOUND 2 WITHOUT ST */
 		else if (ec02LifeTimeoutMins != 0 && serviceTemplateLifeTimeoutMinInteger == 0 && incomingMessageLifeTimeoutMinInteger != 0) {
-			if (incomingMessageLifeTimeoutMinInteger > ec02LifeTimeoutMins) {
-				realLifeTimeoutMins = ec02LifeTimeoutMins;
-			}
-			else {
-				realLifeTimeoutMins = incomingMessageLifeTimeoutMinInteger;
-			}
+			realLifeTimeoutMins = Math.min(incomingMessageLifeTimeoutMinInteger, ec02LifeTimeoutMins);
 		}
 
 		/* FOUND 2 WITHOUT INPUT */
-		else if (ec02LifeTimeoutMins != 0 && serviceTemplateLifeTimeoutMinInteger != 0 && incomingMessageLifeTimeoutMinInteger == 0) {
+		else if (ec02LifeTimeoutMins != 0 && serviceTemplateLifeTimeoutMinInteger != 0) {
 			realLifeTimeoutMins = serviceTemplateLifeTimeoutMinInteger;
 		}
 
 		/* FOUND EC02 WITHOUT INPUT AND ST */
-		else if (ec02LifeTimeoutMins != 0 && serviceTemplateLifeTimeoutMinInteger == 0 && incomingMessageLifeTimeoutMinInteger == 0) {
+		else if (ec02LifeTimeoutMins != 0) {
 			realLifeTimeoutMins = ec02LifeTimeoutMins;
 		}
 
