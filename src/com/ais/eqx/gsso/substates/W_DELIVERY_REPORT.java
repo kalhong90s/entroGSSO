@@ -605,27 +605,29 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 							this.ec02Instance.incrementsStat(Statistic.GSSO_RECEIVED_SMPPGW_DELIVERYREPORT_REQUEST.getStatistic());
 
 							this.mapDetails.setNoFlow();
-							if(origInvokeProfile.getRawDatasOutStateDr().size() ==0 && completely) {
-								this.origInvokeProfile.getRawDatasOutStateDr().add(new DeliveryReportRes(rawDataInput).toRawDatas(drId));
+							if(origInvokeProfile.getRawDatasOutStateDr().size() ==0 ) {
+								if(completely) {
+									this.origInvokeProfile.getRawDatasOutStateDr().add(new DeliveryReportRes(rawDataInput).toRawDatas(drId));
+								}else {
+									this.rawDatasOut.add(new DeliveryReportRes(rawDataInput).toRawDatas(drId));
+								}
+								errorCase();
+
 							}else {
 								if(completely){
 									this.origInvokeProfile.getRawDatasOutStateDr().add(new DeliveryReportRes(rawDataInput).toRawDatas(drId));
 
 								}else {
 									this.rawDatasOut.add(new DeliveryReportRes(rawDataInput).toRawDatas(drId));
+									isWriteSummary = true;
 								}
+
 							}
 
 							appInstance.getMapOrigInvokeEventDetailOutput().put(this.rawDataInput.getInvoke(), event);
 
-							this.ec02Instance
-									.incrementsStat(Statistic.GSSO_RETURN_SMPPGW_DELIVERYREPORT_RESPONSE_ERROR.getStatistic());
-							if(origInvokeProfile.getRawDatasOutStateDr().size() ==0) {
-								errorCase();
-							}else {
-								isWriteSummary = true;
+							this.ec02Instance.incrementsStat(Statistic.GSSO_RETURN_SMPPGW_DELIVERYREPORT_RESPONSE_ERROR.getStatistic());
 
-							}
 
 							if (ConfigureTool.isWriteLog(ConfigName.DEBUG_LOG_ENABLED)) {
 								this.composeDebugLog

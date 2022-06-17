@@ -1623,7 +1623,7 @@ public class GssoConstructMessage {
 		Log.d("Real smsBody Length after Hex:"+smsBody.length());
 
 
-		int maxSms = ConfigureTool.getConfigureInteger(ConfigName.MAX_SMS_BODY)*2 <1?350:ConfigureTool.getConfigureInteger(ConfigName.MAX_SMS_BODY)*2;
+		int maxSms = ConfigureTool.getConfigureInteger(ConfigName.MAX_SMS_BODY)*2 <1 || ConfigureTool.getConfigureInteger(ConfigName.MAX_SMS_BODY)*2>280 ?280:ConfigureTool.getConfigureInteger(ConfigName.MAX_SMS_BODY)*2;
 
 		if(smsBody.length()>maxSms) {
 

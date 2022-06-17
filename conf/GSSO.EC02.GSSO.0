@@ -170,6 +170,7 @@
         <Maximum-Hack-Time value="3" />
         <!-- Easy app connect Gsso 3/3/2022 -->
         <USMP-By-Pass-Config-Service-List value="myChannel,myAIS,robot,GOMO,codapay,serviceByPass" />
+         <!-- GSSO_3.0.1 long sms -->
         <Long-SMPP-GSMNetworkSpecificFeatures value="UDHIIndicator" />
         <Max-Sms-Body-length value="140" />
 
