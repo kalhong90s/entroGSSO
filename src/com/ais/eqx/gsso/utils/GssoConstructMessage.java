@@ -1612,14 +1612,14 @@ public class GssoConstructMessage {
 
 	public static ArrayList<String> splitSmsBody(String smsBody,String language){
 		ArrayList<String> listOfSms = new ArrayList<String>();
-		Log.d("smsBody before Hex:"+smsBody);
+//		Log.d("smsBody before Hex:"+smsBody);
 		if (language.equals(GssoLanguage.THAI) ||language.equals(GssoLanguage.ALL) ) {
 			smsBody = GssoDataManagement.convertStringToHexNotPrefix(smsBody, true);
 		}
 		else {
 			smsBody = GssoDataManagement.convertStringToHexNotPrefix(smsBody, false);
 		}
-		Log.d("smsBody after Hex:"+smsBody);
+//		Log.d("smsBody after Hex:"+smsBody);
 		Log.d("Real smsBody Length after Hex:"+smsBody.length());
 
 
