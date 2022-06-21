@@ -1623,7 +1623,7 @@ public class GssoConstructMessage {
 		Log.d("Real smsBody Length after Hex:"+smsBody.length());
 
 
-		int maxSms = ConfigureTool.getConfigureInteger(ConfigName.MAX_SMS_BODY)*2 <1 || ConfigureTool.getConfigureInteger(ConfigName.MAX_SMS_BODY)*2>280 ?280:ConfigureTool.getConfigureInteger(ConfigName.MAX_SMS_BODY)*2;
+		int maxSms = ConfigureTool.getConfigureInteger(ConfigName.MAX_SMS_BODY)*2 <1 ?280:ConfigureTool.getConfigureInteger(ConfigName.MAX_SMS_BODY)*2;
 
 		if(smsBody.length()>maxSms) {
 
@@ -1640,12 +1640,12 @@ public class GssoConstructMessage {
 
 			while (smsBody.length() > maxSmsWithoutPrefix) {
 				String splitBody = smsBody.substring(0, maxSmsWithoutPrefix);
-				listOfSms.add(prefix  +(CC>9? CC : "0" +CC) + "" +splitBody);
+				listOfSms.add(prefix + (CC>9? CC : "0" +CC) + "" + splitBody);
 				smsBody = smsBody.substring(maxSmsWithoutPrefix);
 				CC++;
 
 			}
-			listOfSms.add(prefix  + "0" + CC + ""+ smsBody);
+			listOfSms.add(prefix + (CC>9? CC : "0" +CC) + "" + smsBody);
 
 
 		}else {
