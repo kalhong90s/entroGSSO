@@ -1925,6 +1925,12 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 					this.nextState = SubStates.W_REFUND.toString();
 					isWriteSummary = true;
 				}
+				else {
+					this.nextState = SubStates.END.toString();
+					/* REMOVE PROFILE */
+					if(completely)GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
+					isWriteSummary = true;
+				}
 			}
 			else if (OTPChannel.ALL.equalsIgnoreCase(otpChannel)) {
 
@@ -1985,12 +1991,26 @@ public class W_DELIVERY_REPORT implements IAFSubState {
 				}
 			}
 			cmdName();
-			/* Refund */
+			/* Refund *//*
 			if (!(this.isRefundFlag && enableCommandsToRefund.contains(this.appInstance.getOrigCommand()))) {
-				/* REMOVE PROFILE */
+				*//* REMOVE PROFILE *//*
 				if(completely)GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
 			}
-			isWriteSummary = true;
+			isWriteSummary = true;*/
+
+			/* Refund */
+			if (this.isRefundFlag && enableCommandsToRefund.contains(this.appInstance.getOrigCommand())) {
+				this.origInvokeProfile.getRawDatasOutStateDr().add(GssoConstructMessage.createRefundReqTorPCEFMessage(this.rawDataOrig, ec02Instance, this.sessionId,
+						this.refId, this.msisdn, composeDebugLog));
+				this.nextState = SubStates.W_REFUND.toString();
+				isWriteSummary = true;
+			}
+			else {
+				this.nextState = SubStates.END.toString();
+				/* REMOVE PROFILE */
+				if(completely)GssoDataManagement.removeProfileAndTransaction(origInvoke, appInstance);
+				isWriteSummary = true;
+			}
 		}
 	}
 
