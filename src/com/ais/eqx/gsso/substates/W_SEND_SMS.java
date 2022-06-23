@@ -108,7 +108,6 @@ public class W_SEND_SMS implements IAFSubState {
 		completely = origInvokeProfile.getSmsIncoming()==origInvokeProfile.getSmsOutgoing();
 		Log.d("###########  Count SMS IncommingMsg :"+origInvokeProfile.getSmsIncoming()+"/"+origInvokeProfile.getSmsOutgoing()+" ########### ");
 
-
 		/************** CODING ******************/
 //		System.out.println("Start W_SEND_SMS");
 
@@ -682,11 +681,15 @@ public class W_SEND_SMS implements IAFSubState {
 			}
 
 			if(!origInvokeProfile.isBypassUSMP()) {
-				if (this.appInstance.getMapOrigProfile().get(origInvoke).getSmsRetryLimit() >= (Integer.parseInt(ConfigureTool.getConfigure(ConfigName.SMS_RETRIES)))) {
+				Log.d("###########  SmsRetry :"+Integer.parseInt(ConfigureTool.getConfigure(ConfigName.SMS_RETRIES))+"/"+this.appInstance.getMapOrigProfile().get(origInvoke).getSmsRetryLimit()+" ########### ");
 
+				if (this.appInstance.getMapOrigProfile().get(origInvoke).getSmsRetryLimit() >= (Integer.parseInt(ConfigureTool.getConfigure(ConfigName.SMS_RETRIES)))) {
+					this.rawDatasOut.clear();
 					errorCase();
 
 				} else {
+					this.rawDatasOut.clear();
+					origInvokeProfile.setSmsIncoming(origInvokeProfile.getSmsIncoming()-1);
 
 					this.appInstance.getMapOrigProfile().get(origInvoke).increaseSMSRetryLimit();
 
