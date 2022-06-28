@@ -75,10 +75,6 @@ public class InstanceValidator {
 				throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_INPUT_PARAMETER, VerifyMessageType.IS_INVALID);
 		}
 
-		/** msisdn **/
-		mandatoryPath = "msisdn";
-		if (!val.contains(mandatoryPath))
-			throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_MISSING);
 
 		/** service **/
 		mandatoryPath = "service";
@@ -95,67 +91,10 @@ public class InstanceValidator {
 		if (!val.contains(mandatoryPath))
 			throw new ValidationException(mandatoryPath, JsonResultCode.UNKNOWN_OTP_CHANNEL, VerifyMessageType.IS_MISSING);
 
-		/** msisdn **/
-		mandatoryPath = "msisdn";
-		int msisdnDigitLength = Integer.parseInt(ConfigureTool.getConfigure(ConfigName.MSISDN_DIGIT_LENGTH));
-		String[] countryCodeList = GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.DOMESTIC_COUNTRY_CODE_LIST));
+
 		SendOneTimePWRequest sendOneTimePW = otpRequest.getSendOneTimePW();
-		if (sendOneTimePW.getMsisdn() == null)
-			throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_MISSING);
-
-		else if (sendOneTimePW.getMsisdn().isEmpty())
-			throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_NULL);
 
 
-		String msisdn = sendOneTimePW.getMsisdn();
-		boolean foundCountry = false;
-		try {
-			for (String countryCode : countryCodeList) {
-				String msisdnPrefix = msisdn.substring(0, countryCode.length());
-				
-				if (msisdnPrefix.contains(countryCode)) {
-					
-					if (msisdn.length() < msisdnDigitLength){
-						throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_INVALID);
-					}
-					
-					String realMsisdn = msisdn.substring(countryCode.length(), msisdn.length());
-
-					String msisdnPattern = "[0-9]+";
-					typePattern = Pattern.compile(msisdnPattern);
-					typeMatcher = typePattern.matcher(realMsisdn);
-					if (typeMatcher.matches() && realMsisdn.length() == msisdnDigitLength) {
-						foundCountry = true;
-						break;
-					}
-					else {
-						throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_INVALID);
-					}
-				}else{
-					// is Inter
-					GssoProfile gssoProfile = new GssoProfile();
-					gssoProfile.setOper("INTER");
-					gssoProfile.setLanguage("2");
-					appInstance.setProfile(gssoProfile);
-					
-					String msisdnPattern = "[0-9]+";
-					typePattern = Pattern.compile(msisdnPattern);
-					typeMatcher = typePattern.matcher(msisdn);
-					if (typeMatcher.matches()) {
-						break;
-					}
-					else {
-						throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_INVALID);
-					}
-				}
-			}
-		}
-		catch (Exception e) {
-			throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_INVALID);
-		}
-//		if (!foundCountry) {
-//			throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_INVALID);
-//		}
 
 		/** service **/
 		mandatoryPath = "service";
@@ -197,6 +136,77 @@ public class InstanceValidator {
 		if (!Arrays.asList(possibleValue).contains(sendOneTimePW.getOtpChannel().toUpperCase())) {
 			throw new ValidationException(mandatoryPath, JsonResultCode.UNKNOWN_OTP_CHANNEL, VerifyMessageType.IS_INVALID);
 		}
+
+		possibleValue = new String[] { "SMS", "ALL" };
+		if (Arrays.asList(possibleValue).contains(sendOneTimePW.getOtpChannel().toUpperCase())) {
+
+			/** msisdn **/
+			mandatoryPath = "msisdn";
+			if (!val.contains(mandatoryPath))
+				throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_MISSING);
+
+			/** msisdn **/
+			mandatoryPath = "msisdn";
+			int msisdnDigitLength = Integer.parseInt(ConfigureTool.getConfigure(ConfigName.MSISDN_DIGIT_LENGTH));
+			String[] countryCodeList = GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.DOMESTIC_COUNTRY_CODE_LIST));
+			if (sendOneTimePW.getMsisdn() == null)
+				throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_MISSING);
+
+			else if (sendOneTimePW.getMsisdn().isEmpty())
+				throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_NULL);
+
+
+			String msisdn = sendOneTimePW.getMsisdn();
+			boolean foundCountry = false;
+			try {
+				for (String countryCode : countryCodeList) {
+					String msisdnPrefix = msisdn.substring(0, countryCode.length());
+
+					if (msisdnPrefix.contains(countryCode)) {
+
+						if (msisdn.length() < msisdnDigitLength){
+							throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_INVALID);
+						}
+
+						String realMsisdn = msisdn.substring(countryCode.length(), msisdn.length());
+
+						String msisdnPattern = "[0-9]+";
+						typePattern = Pattern.compile(msisdnPattern);
+						typeMatcher = typePattern.matcher(realMsisdn);
+						if (typeMatcher.matches() && realMsisdn.length() == msisdnDigitLength) {
+							foundCountry = true;
+							break;
+						}
+						else {
+							throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_INVALID);
+						}
+					}else{
+						// is Inter
+						GssoProfile gssoProfile = new GssoProfile();
+						gssoProfile.setOper("INTER");
+						gssoProfile.setLanguage("2");
+						appInstance.setProfile(gssoProfile);
+
+						String msisdnPattern = "[0-9]+";
+						typePattern = Pattern.compile(msisdnPattern);
+						typeMatcher = typePattern.matcher(msisdn);
+						if (typeMatcher.matches()) {
+							break;
+						}
+						else {
+							throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_INVALID);
+						}
+					}
+				}
+			}
+			catch (Exception e) {
+				throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_INVALID);
+			}
+//		if (!foundCountry) {
+//			throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_INVALID);
+//		}
+		}
+
 
 		/** emailAddr **/
 		if (otpRequest.getMessageType().equals(GssoMessageType.JSON)) {

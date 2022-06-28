@@ -87,6 +87,9 @@ public class IDLE_SEND_OTP_REQ implements IAFSubState {
 			// =========WRITE SUMMARY=======
 
 			String service = this.otpRequest.getSendOneTimePW().getService().toUpperCase();
+			String otpChannel = this.otpRequest.getSendOneTimePW().getOtpChannel();
+			String msisdn = this.otpRequest.getSendOneTimePW().getMsisdn();
+
 			HashMap<String, GssoE01Datas> mapE01dataofService = appInstance.getMapE01dataofService();
 			GssoE01Datas gssoE01Datas = mapE01dataofService.get(service);
 
@@ -133,9 +136,52 @@ public class IDLE_SEND_OTP_REQ implements IAFSubState {
 					}
 				}
 
-			}/* DO SERVICE TEMPLATE */
-			else if (appInstance.isInquirySubSuccess() ||
-					(appInstance.getProfile().getOper() != null && appInstance.getProfile().getOper().equals("INTER"))) {
+			}
+			/** EMAIL Only **/
+			else if (otpChannel.equalsIgnoreCase(OTPChannel.EMAIL) &&( msisdn == null || msisdn.isEmpty() || "".equals(msisdn.trim()))) {
+				appInstance.getListInvokeProcessing().add(rawDataIncoming.getInvoke());
+				/*** CODING QUIRY E01 OR FOUND ST DO SEND EMAIL OR SMS ***/
+				/* IF NOT FOUND SERVICE TEMPLATE DO QUIRY E01 */
+				if (mapE01dataofService.size() <= 0) {
+					if (gssoE01Datas == null || gssoE01Datas.getServiceTemplate() == null
+							|| gssoE01Datas.getServiceTemplate().size() <= 0) {
+						GssoConstructMessage.createMessageQuiryE01Template(ec02Instance, rawDataIncoming.getInvoke(), abstractAF,
+								composeDebugLog);
+
+						if (ConfigureTool.isWriteLog(ConfigName.DEBUG_LOG_ENABLED)) {
+							// =========== DEBUG LOG ==========
+							/** writeLog LOG **/
+							composeDebugLog.initialGssoSubStateLog(rawDataIncoming);
+							// ^^^^^^^^^^^ DEBUG LOG ^^^^^^^^^^
+						}
+					} else {
+						/* FOUND SERVICE TEMPLATE DO SMS OR EMAIL */
+						smsOrEmailFlow(rawDataIncoming);
+
+					}
+				} else {
+					/* FOUND SERVICE TEMPLATE DO SMS OR EMAIL */
+					if (gssoE01Datas == null || gssoE01Datas.getServiceTemplate() == null
+							|| gssoE01Datas.getServiceTemplate().size() <= 0) {
+						GssoConstructMessage.createMessageQuiryE01Template(ec02Instance, rawDataIncoming.getInvoke(), abstractAF,
+								composeDebugLog);
+
+						if (ConfigureTool.isWriteLog(ConfigName.DEBUG_LOG_ENABLED)) {
+							// =========== DEBUG LOG ==========
+							/** writeLog LOG **/
+							composeDebugLog.initialGssoSubStateLog(rawDataIncoming);
+							// ^^^^^^^^^^^ DEBUG LOG ^^^^^^^^^^
+						}
+					} else {
+						/* FOUND SERVICE TEMPLATE DO SMS OR EMAIL */
+						smsOrEmailFlow(rawDataIncoming);
+
+					}
+				}
+
+			}
+			/* DO SERVICE TEMPLATE */
+			else if (appInstance.isInquirySubSuccess() ||(appInstance.getProfile().getOper() != null && appInstance.getProfile().getOper().equals("INTER"))) {
 				appInstance.getListInvokeProcessing().add(rawDataIncoming.getInvoke());
 
 				/*** CODING QUIRY E01 OR FOUND ST DO SEND EMAIL OR SMS ***/
