@@ -312,6 +312,7 @@ public class IDLE_CONFIRMATION implements IAFSubState {
 		long otpExpireTime = confirmOTP.getOtpExpireTime();
 		/* NOT EXPIRE */
 		if (otpExpireTime > System.currentTimeMillis()) {
+
 			if (confirmOneTimePW.getPwd().equals(confirmOTP.getOtp())) {
 
 				if (hackTime >= maximumHackTime) {

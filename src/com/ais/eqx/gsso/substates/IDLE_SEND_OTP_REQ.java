@@ -97,7 +97,9 @@ public class IDLE_SEND_OTP_REQ implements IAFSubState {
 			if(Arrays.asList(GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.USMP_BY_PASS_CONFIG_SERVICE_LIST).toUpperCase())).contains(service)){
 				appInstance.getListInvokeProcessing().add(rawDataIncoming.getInvoke());
 				origInvokeProfile.setBypassUSMP(true);
-				/*** CODING QUIRY E01 OR FOUND ST DO SEND EMAIL OR SMS ***/
+                Log.d("############ Bypass USMP CASE : Service (EC02) ############ ");
+
+                /*** CODING QUIRY E01 OR FOUND ST DO SEND EMAIL OR SMS ***/
 				/* IF NOT FOUND SERVICE TEMPLATE DO QUIRY E01 */
 				if (mapE01dataofService.size() <= 0) {
 					if (gssoE01Datas == null || gssoE01Datas.getServiceTemplate() == null
@@ -140,6 +142,9 @@ public class IDLE_SEND_OTP_REQ implements IAFSubState {
 			/** EMAIL Only **/
 			else if (otpChannel.equalsIgnoreCase(OTPChannel.EMAIL) &&( msisdn == null || msisdn.isEmpty() || "".equals(msisdn.trim()))) {
 				appInstance.getListInvokeProcessing().add(rawDataIncoming.getInvoke());
+				appInstance.getProfile().setOper(OperName.NonAIS);
+                Log.d("############ Bypass USMP CASE : OTP Email  ############ ");
+
 				/*** CODING QUIRY E01 OR FOUND ST DO SEND EMAIL OR SMS ***/
 				/* IF NOT FOUND SERVICE TEMPLATE DO QUIRY E01 */
 				if (mapE01dataofService.size() <= 0) {
@@ -183,6 +188,7 @@ public class IDLE_SEND_OTP_REQ implements IAFSubState {
 			/* DO SERVICE TEMPLATE */
 			else if (appInstance.isInquirySubSuccess() ||(appInstance.getProfile().getOper() != null && appInstance.getProfile().getOper().equals("INTER"))) {
 				appInstance.getListInvokeProcessing().add(rawDataIncoming.getInvoke());
+                Log.d("############  Bypass USMP CASE : INTER ############ ");
 
 				/*** CODING QUIRY E01 OR FOUND ST DO SEND EMAIL OR SMS ***/
 				/* IF NOT FOUND SERVICE TEMPLATE DO QUIRY E01 */

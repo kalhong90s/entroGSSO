@@ -328,6 +328,61 @@ public class InstanceValidator {
 			}
 		}
 
+		if (sendOneTimePW.getMsisdn() == null || sendOneTimePW.getMsisdn().isEmpty() || "".equals(sendOneTimePW.getMsisdn().trim())) {
+		}else {
+
+			/** msisdn **/
+			mandatoryPath = "msisdn";
+			int msisdnDigitLength = Integer.parseInt(ConfigureTool.getConfigure(ConfigName.MSISDN_DIGIT_LENGTH));
+			String[] countryCodeList = GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.DOMESTIC_COUNTRY_CODE_LIST));
+
+
+			String msisdn = sendOneTimePW.getMsisdn();
+			boolean foundCountry = false;
+			try {
+				for (String countryCode : countryCodeList) {
+					String msisdnPrefix = msisdn.substring(0, countryCode.length());
+
+					if (msisdnPrefix.contains(countryCode)) {
+
+						if (msisdn.length() < msisdnDigitLength) {
+							throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_INVALID);
+						}
+
+						String realMsisdn = msisdn.substring(countryCode.length(), msisdn.length());
+
+						String msisdnPattern = "[0-9]+";
+						typePattern = Pattern.compile(msisdnPattern);
+						typeMatcher = typePattern.matcher(realMsisdn);
+						if (typeMatcher.matches() && realMsisdn.length() == msisdnDigitLength) {
+							foundCountry = true;
+							break;
+						} else {
+							throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_INVALID);
+						}
+					} else {
+						// is Inter
+						GssoProfile gssoProfile = new GssoProfile();
+						gssoProfile.setOper("INTER");
+						gssoProfile.setLanguage("2");
+						appInstance.setProfile(gssoProfile);
+
+						String msisdnPattern = "[0-9]+";
+						typePattern = Pattern.compile(msisdnPattern);
+						typeMatcher = typePattern.matcher(msisdn);
+						if (typeMatcher.matches()) {
+							break;
+						} else {
+							throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_INVALID);
+						}
+					}
+				}
+			} catch (Exception e) {
+				throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_INVALID);
+			}
+
+		}
+
 		/** waitDR **/
 		mandatoryPath = "waitDR";
 		possibleValue = new String[] { "TRUE", "FALSE" };
@@ -369,7 +424,6 @@ public class InstanceValidator {
 		// serviceIsBypass
 		// require state and smsLanguage
 		if(Arrays.asList(GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.USMP_BY_PASS_CONFIG_SERVICE_LIST).toUpperCase())).contains(sendOneTimePW.getService().toUpperCase())){
-			Log.d("############ Case : Bypass USMP ############ ");
 
 			mandatoryPath = "state";
 			Log.d("EC02 <Active-State ="+ConfigureTool.getConfigure(ConfigName.ACTIVE_STATE)+" : sendOneTimePW.state="+sendOneTimePW.getState());
@@ -1638,10 +1692,6 @@ public class InstanceValidator {
 				throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_INPUT_PARAMETER, VerifyMessageType.IS_INVALID);
 		}
 
-		/** msisdn **/
-		mandatoryPath = "msisdn";
-		if (!val.contains(mandatoryPath))
-			throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_MISSING);
 
 		/** pwd **/
 		mandatoryPath = "pwd";
@@ -1672,9 +1722,11 @@ public class InstanceValidator {
 //				throw new ValidationException(mandatoryPath, JsonResultCode.SERVICE_VAL_EMPTY, VerifyMessageType.IS_INVALID);
 //			}
 //		}
-
-		/** msisdn **/
+/*		*//** msisdn **//*
 		mandatoryPath = "msisdn";
+		if (!val.contains(mandatoryPath))
+			throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_MISSING);
+
 		int msisdnDigitLength = Integer.parseInt(ConfigureTool.getConfigure(ConfigName.MSISDN_DIGIT_LENGTH));
 		String[] countryCodeList = GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.DOMESTIC_COUNTRY_CODE_LIST));
 		if (confirmOTPReq.getConfirmOneTimePW().getMsisdn() == null)
@@ -1708,7 +1760,7 @@ public class InstanceValidator {
 						throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_INVALID);
 					}
 				}
-				/** INTER Case */
+				//** INTER Case //*
 				else{
 					String msisdnPattern = "[0-9]+";
 					typePattern = Pattern.compile(msisdnPattern);
@@ -1729,7 +1781,7 @@ public class InstanceValidator {
 		}
 		if (!foundCountry) {
 			throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_MSISDN_FORMAT, VerifyMessageType.IS_INVALID);
-		}
+		}*/
 
 		/** pwd **/
 		mandatoryPath = "pwd";
@@ -2839,5 +2891,5 @@ public class InstanceValidator {
 			throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_TRANSACTION_ID_FORMAT, VerifyMessageType.IS_NULL);
 		}
 	}
-	
+
 }
