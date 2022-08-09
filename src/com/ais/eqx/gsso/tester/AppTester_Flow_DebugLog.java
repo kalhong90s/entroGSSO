@@ -227,6 +227,7 @@ public class AppTester_Flow_DebugLog {
 
 		return beginMessage + instance + endMessage;
 
+
 	}
 
 	private static String replaceValueOTPJsnon(String fromMessage, String toMessage,String value){
