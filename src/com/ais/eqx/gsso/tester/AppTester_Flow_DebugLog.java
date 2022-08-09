@@ -222,10 +222,10 @@ public class AppTester_Flow_DebugLog {
 		beginInstance = toMessage.indexOf("<EquinoxInstance>");
 		endInstance = toMessage.indexOf("</EquinoxInstance>");
 
-		toMessage = toMessage.substring(0, beginInstance) + instance + toMessage.substring(endInstance);
+		String beginMessage = toMessage.substring(0, beginInstance);
+		String endMessage = toMessage.substring(endInstance);
 
-
-		return toMessage;
+		return beginMessage + instance + endMessage;
 
 	}
 
