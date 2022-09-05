@@ -173,6 +173,9 @@
          <!-- GSSO_3.0.1 long sms -->
         <Long-SMPP-GSMNetworkSpecificFeatures value="UDHIIndicator" />
         <Max-Sms-Body-length value="140" />
+        <Dummy-Email-Lists-By-Service value="omiChannel|gssotest1@ais.co.th,GOMO|gssotest2@ais.co.th" />
+        <Dummy-Msisdn-Lists-By-Service value="omiChannel|66888888888,GOMO|66127894563" />
+
 
 
     </warm>

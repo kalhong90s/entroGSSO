@@ -109,6 +109,32 @@ public class InstanceValidator {
 			throw new ValidationException(mandatoryPath, JsonResultCode.SERVICE_VAL_EMPTY, VerifyMessageType.IS_INVALID);
 		}
 
+
+		String[] dummyEmailLists = GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.DUMMY_EMAILLISTS_BY_SERVICE));
+		if(null != dummyEmailLists){
+			for (String dummyEmail : dummyEmailLists){
+				String [] spliteEmail = dummyEmail.split("\\|");
+				if(spliteEmail.length>=2 && spliteEmail[0].equalsIgnoreCase(sendOneTimePW.getService())){
+					sendOneTimePW.setEmailAddr(spliteEmail[1]);
+					break;
+				}
+			}
+		}
+
+		String[] dummyMsisdnLists = GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.DUMMY_MSISDNLISTS_BY_SERVICE));
+		if(null != dummyMsisdnLists){
+			for (String dummyMsisdn : dummyMsisdnLists){
+				String [] spliteMsisdn = dummyMsisdn.split("\\|");
+				if(spliteMsisdn.length>=2 && spliteMsisdn[0].equalsIgnoreCase(sendOneTimePW.getService())){
+					sendOneTimePW.setMsisdn(spliteMsisdn[1]);
+					break;
+				}
+			}
+		}
+
+
+
+
 		/** accountType **/
 		mandatoryPath = "accountType";
 		possibleValue = new String[] { "PREPAID", "POSTPAID", "AIS", "NON-AIS", "ALL", "INTER" };
