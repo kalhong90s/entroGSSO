@@ -38,7 +38,7 @@ public class AppTester_Flow {
 
 				/******************** V2.0 *****************/
 
-			 	"debug.xml"
+			 	"debug.log"
 				
 				/* SEND OTP REQ && CONFIRM, CONFIRM WITH KEY */
 //			 	"_idle_soap_request.xml"

@@ -1236,6 +1236,17 @@ public class GssoConstructMessage {
 
 		OrigInvokeProfile origProfile = appInstance.getMapOrigProfile().get(origInvoke);
 
+		//  gsso 3.0.3  2022/09/06   setDummy email by config for sendOneTimePW
+		String[] dummyEmailLists = GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.DUMMY_EMAILLISTS_BY_SERVICE));
+		if(null != dummyEmailLists){
+			for (String dummyEmail : dummyEmailLists){
+				String [] spliteEmail = dummyEmail.split("\\|");
+				if(spliteEmail.length>=2 && spliteEmail[0].equalsIgnoreCase(origProfile.getGssoOTPRequest().getSendOneTimePW().getService())){
+					origProfile.getGssoOTPRequest().getSendOneTimePW().setEmailAddr(spliteEmail[1]);
+					break;
+				}
+			}
+		}
 		
 		if(origProfile.getGssoOrigCommand().equals(GssoCommand.WS_AUTHEN_OTP_ID)){
 			SendWSOTPRequest sendWSOTPRequest = origProfile.getSendWSOTPRequest();

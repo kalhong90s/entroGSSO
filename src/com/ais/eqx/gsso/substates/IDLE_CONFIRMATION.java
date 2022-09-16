@@ -2,6 +2,7 @@ package com.ais.eqx.gsso.substates;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import com.ais.eqx.gsso.enums.ConfigName;
 import com.ais.eqx.gsso.enums.EventLog;
@@ -312,8 +313,38 @@ public class IDLE_CONFIRMATION implements IAFSubState {
 		long otpExpireTime = confirmOTP.getOtpExpireTime();
 		/* NOT EXPIRE */
 		if (otpExpireTime > System.currentTimeMillis()) {
+			boolean isDummyMsisdn = null !=ConfigureTool.getConfigure(ConfigName.DUMMY_MSISDNLISTS_FOR_CONFIRM_OTP) &&
+					Arrays.asList(GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.DUMMY_MSISDNLISTS_FOR_CONFIRM_OTP))).contains(confirmOTPReq.getConfirmOneTimePW().getMsisdn());
+			if(isDummyMsisdn){
+				if (hackTime >= maximumHackTime) {
+					this.jsonCode = JsonResultCode.HACK_TIME_MORETHAN_3;
 
-			if (confirmOneTimePW.getPwd().equals(confirmOTP.getOtp())) {
+					writeHackTimeMoreThanThreeLogAndStatistic(rawData, confirmOneTimePW);
+
+					/** CREATE RES MESSAGE **/
+					rawDatasOutgoing.add(GssoConstructMessage.createReturnErrorMessageIdle(this.appInstance, appInstance.getProfile(),
+							appInstance.getListOrderReference(), appInstance.getTimeStampIncoming(), rawDataIncoming, jsonCode,
+							logDescription, path, composeDebugLog, composeSummary, SubStates.IDLE_CONFIRMATION.name()));
+
+					/* REMOVE PROFILE */
+					GssoDataManagement.removeProfile(rawData.getInvoke(), appInstance);
+				}
+				else {
+					this.jsonCode = JsonResultCode.SUCCESS;
+
+					writePwdMatchLogAndStatistic(rawData, confirmOneTimePW);
+
+					/** CREATE SUCCESS RES MESSAGE **/
+					createReturnSuccessMessage(rawData, confirmOTP);
+
+					/* REMOVE PROFILE */
+					GssoDataManagement.removeProfile(rawData.getInvoke(), appInstance);
+					/* REMOVE TRANSACTION PROFILE */
+					appInstance.getTransactionidData().remove(confirmOneTimePW.getTransactionID());
+					appInstance.getMapTimeoutOfTransactionID().remove(confirmOneTimePW.getTransactionID());
+				}
+			}
+			else if (confirmOneTimePW.getPwd().equals(confirmOTP.getOtp())) {
 
 				if (hackTime >= maximumHackTime) {
 					this.jsonCode = JsonResultCode.HACK_TIME_MORETHAN_3;

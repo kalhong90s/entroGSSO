@@ -110,30 +110,6 @@ public class InstanceValidator {
 		}
 
 
-		String[] dummyEmailLists = GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.DUMMY_EMAILLISTS_BY_SERVICE));
-		if(null != dummyEmailLists){
-			for (String dummyEmail : dummyEmailLists){
-				String [] spliteEmail = dummyEmail.split("\\|");
-				if(spliteEmail.length>=2 && spliteEmail[0].equalsIgnoreCase(sendOneTimePW.getService())){
-					sendOneTimePW.setEmailAddr(spliteEmail[1]);
-					break;
-				}
-			}
-		}
-
-		String[] dummyMsisdnLists = GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.DUMMY_MSISDNLISTS_BY_SERVICE));
-		if(null != dummyMsisdnLists){
-			for (String dummyMsisdn : dummyMsisdnLists){
-				String [] spliteMsisdn = dummyMsisdn.split("\\|");
-				if(spliteMsisdn.length>=2 && spliteMsisdn[0].equalsIgnoreCase(sendOneTimePW.getService())){
-					sendOneTimePW.setMsisdn(spliteMsisdn[1]);
-					break;
-				}
-			}
-		}
-
-
-
 
 		/** accountType **/
 		mandatoryPath = "accountType";
@@ -1718,12 +1694,15 @@ public class InstanceValidator {
 				throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_INPUT_PARAMETER, VerifyMessageType.IS_INVALID);
 		}
 
+		boolean isDummyMsisdn = null != GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.DUMMY_MSISDNLISTS_FOR_CONFIRM_OTP)) &&
+				Arrays.asList(GssoDataManagement.configToArray(ConfigureTool.getConfigure(ConfigName.DUMMY_MSISDNLISTS_FOR_CONFIRM_OTP))).contains(confirmOTPReq.getConfirmOneTimePW().getMsisdn());
 
 		/** pwd **/
-		mandatoryPath = "pwd";
-		if (!val.contains(mandatoryPath))
-			throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_ONETIME_PASSWORD_FORMAT, VerifyMessageType.IS_MISSING);
-
+		if(!isDummyMsisdn) {
+			mandatoryPath = "pwd";
+			if (!val.contains(mandatoryPath))
+				throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_ONETIME_PASSWORD_FORMAT, VerifyMessageType.IS_MISSING);
+		}
 		/** transactionID **/
 		mandatoryPath = "transactionID";
 		if (!val.contains(mandatoryPath))
@@ -1810,24 +1789,24 @@ public class InstanceValidator {
 		}*/
 
 		/** pwd **/
-		mandatoryPath = "pwd";
-		if (confirmOTPReq.getConfirmOneTimePW().getPwd() == null) {
-			throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_ONETIME_PASSWORD_FORMAT, VerifyMessageType.IS_MISSING);
-		}
-		if (confirmOTPReq.getConfirmOneTimePW().getPwd().isEmpty()) {
-			throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_ONETIME_PASSWORD_FORMAT, VerifyMessageType.IS_NULL);
-		}
-		try {
-			if (confirmOTPReq.getConfirmOneTimePW().getPwd().length() < 4
-					|| confirmOTPReq.getConfirmOneTimePW().getPwd().length() > 12) {
-				throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_ONETIME_PASSWORD_FORMAT,
-						VerifyMessageType.IS_INVALID);
+		if(!isDummyMsisdn) {
+			mandatoryPath = "pwd";
+			if (confirmOTPReq.getConfirmOneTimePW().getPwd() == null) {
+				throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_ONETIME_PASSWORD_FORMAT, VerifyMessageType.IS_MISSING);
+			}
+			if (confirmOTPReq.getConfirmOneTimePW().getPwd().isEmpty()) {
+				throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_ONETIME_PASSWORD_FORMAT, VerifyMessageType.IS_NULL);
+			}
+			try {
+				if (confirmOTPReq.getConfirmOneTimePW().getPwd().length() < 4
+						|| confirmOTPReq.getConfirmOneTimePW().getPwd().length() > 12) {
+					throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_ONETIME_PASSWORD_FORMAT,
+							VerifyMessageType.IS_INVALID);
+				}
+			} catch (Exception e) {
+				throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_ONETIME_PASSWORD_FORMAT, VerifyMessageType.IS_INVALID);
 			}
 		}
-		catch (Exception e) {
-			throw new ValidationException(mandatoryPath, JsonResultCode.WRONG_ONETIME_PASSWORD_FORMAT, VerifyMessageType.IS_INVALID);
-		}
-
 		/** transactionID **/
 		mandatoryPath = "transactionID";
 		if (confirmOTPReq.getConfirmOneTimePW().getTransactionID() == null) {

@@ -114,7 +114,7 @@ public class APPTester {
 // 		"def_idel_generate_pk_json.xml"
 //		"def_idel_generate_pk_soap.xml"
 
-				"debug.xml"
+				"debug.log"
 //				"temp.xml"
 //		 "testtemp.xml"
 		;

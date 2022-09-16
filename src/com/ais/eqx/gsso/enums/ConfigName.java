@@ -155,9 +155,9 @@ public enum ConfigName {
 
 	, MAX_SMS_BODY("Max-Sms-Body-length")
 
-	, DUMMY_EMAILLISTS_BY_SERVICE("Dummy-Email-Lists-By-Service")
+	, DUMMY_EMAILLISTS_BY_SERVICE("Dummy-Email-Config-Service-Lists")
 
-	, DUMMY_MSISDNLISTS_BY_SERVICE("Dummy-Msisdn-Lists-By-Service")
+	, DUMMY_MSISDNLISTS_FOR_CONFIRM_OTP("Dummy-Msisdn-Lists-For-Confirm-Otp")
 
 
 
